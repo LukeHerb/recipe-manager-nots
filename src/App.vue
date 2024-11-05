@@ -32,6 +32,8 @@ const recipes = ref([
     difficulty: 'Easy',
   },
 ])
+
+console.log('Recipes', recipes)
 </script>
 
 <template>

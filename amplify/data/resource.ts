@@ -20,6 +20,7 @@ const schema = a.schema({
       ingredients: a.string().array(),
       instructions: a.string().array(),
       owner: a.string(),
+      imageFileNames: a.string().array(),
       reviews: a.hasMany('Review', 'recipeId'), // Define relationship
     })
     .authorization((allow) => [allow.authenticated()]),

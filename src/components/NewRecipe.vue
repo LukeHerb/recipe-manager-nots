@@ -8,9 +8,9 @@
           <div class="flex flex-col gap-6 bg-white p-8 pb-2 rounded-xl">
             <div><input type="file" @change="handleFileUpload" /></div>
             <div>
-              <button style="margin: 10px" @click="listFiles">
-                Show Images
-              </button>
+              <div v-if="link.value">
+                <img :src="link.value" alt="recipe image" />
+              </div>
             </div>
             <FloatLabel variant="on" class="w-full">
               <InputText
@@ -144,6 +144,7 @@ import { generateClient } from 'aws-amplify/data'
 import { type Schema } from '../../amplify/data/resource'
 import { getCurrentUser } from 'aws-amplify/auth'
 import { uploadData, list, getUrl } from 'aws-amplify/storage'
+import { v4 as uuidv4 } from 'uuid'
 
 const currentUser = ref()
 
@@ -155,6 +156,7 @@ onMounted(async () => {
 })
 
 const recipe = ref<{
+  id: string
   name: string
   course: string
   time: string
@@ -163,7 +165,9 @@ const recipe = ref<{
   description: string
   ingredients: string[]
   instructions: string[]
+  imageFileNames: string[]
 }>({
+  id: '',
   name: '',
   course: '',
   time: '',
@@ -172,12 +176,13 @@ const recipe = ref<{
   description: '',
   ingredients: [],
   instructions: [],
+  imageFileNames: [],
 })
 
 const inputIngredient = ref('')
 const inputInstruction = ref('')
 const currIndex = ref(1)
-const imgLink = ref()
+const link = ref()
 
 const times = [
   '15 minutes',
@@ -280,6 +285,7 @@ const removeInstruction = (index: number) => {
 
 const addRecipe = async () => {
   client.models.Recipe.create({
+    id: recipe.value.id,
     name: recipe.value.name,
     description: recipe.value.description,
     time: recipe.value.time,
@@ -290,54 +296,40 @@ const addRecipe = async () => {
     instructions: recipe.value.instructions,
     createdBy: currentUser.value.signInDetails.loginId,
     owner: currentUser.value.username,
+    imageFileNames: recipe.value.imageFileNames,
   }).then(() => {
     console.log('Recipe created successfully')
   })
 }
 
-const listFiles = async () => {
-  const result = await list({
-    path: 'recipe-manager/images/',
-    // Alternatively, path: ({identityId}) => `album/{identityId}/photos/`,
-    options: {
-      bucket: 'recipe-manager-bucket',
-      listAll: true,
-    },
-  })
-
-  console.log(`recipe images: ${JSON.stringify(result)}`)
-  imgLink.value = []
-  result.items.forEach(async (item) => {
-    const link = await getUrl({
-      path: item.path,
-      options: {
-        bucket: 'recipe-manager-bucket',
-        // url expiration time in seconds.
-        expiresIn: 300,
-      },
-    })
-    imgLink.value.push({ url: link.url.toString(), path: link.url.pathname })
-    console.log(`temp url: ${link.url.toString()}`)
-  })
-}
-
-const handleFileUpload = (event: Event) => {
+const handleFileUpload = async (event: Event) => {
   const target = event.target as HTMLInputElement
   if (target.files && target.files.length > 0) {
+    recipe.value.id = uuidv4()
     const file = target.files[0]
     console.log(`Uploading file: ${file.name}`)
 
     try {
-      const result = uploadData({
-        path: `recipe-manager/images/${file.name}`,
+      const result = await uploadData({
+        path: `recipe-manager/images/${recipe.value.id}/${file.name}`,
         data: file,
         options: {
           bucket: 'recipe-manager-bucket',
         },
-      })
-      console.log(result)
+      }).result
+      console.log(JSON.stringify(result))
 
       console.log(`Upload successful: ${JSON.stringify(result)}`)
+      const getLink = await getUrl({
+        path: `recipe-manager/images/${recipe.value.id}/${file.name}`,
+        options: {
+          bucket: 'recipe-manager-bucket',
+          // url expiration time in seconds.
+          expiresIn: 300,
+        },
+      })
+      recipe.value.imageFileNames.push(file.name)
+      link.value = getLink.url.toString()
     } catch (error) {
       console.error('Upload failed:', error)
     }
