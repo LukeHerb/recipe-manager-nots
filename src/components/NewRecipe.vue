@@ -8,8 +8,8 @@
           <div class="flex flex-col gap-6 bg-white p-8 pb-2 rounded-xl">
             <div><input type="file" @change="handleFileUpload" /></div>
             <div>
-              <div v-if="link.value">
-                <img :src="link.value" alt="recipe image" />
+              <div v-if="link">
+                <img :src="link" alt="recipe image" />
               </div>
             </div>
             <FloatLabel variant="on" class="w-full">

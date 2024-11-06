@@ -52,7 +52,15 @@
         </div>
         <div
           class="border-2 border-black flex justify-center items-center image-placeholder w-6/12 h-full bg-green-400 rounded-2xl overflow-hidden"
-        ></div>
+        >
+          <img
+            v-if="recipe.hasLoadedImages"
+            v-for="image in recipe.imageLinks"
+            :src="image"
+            alt="recipe image"
+            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+          />
+        </div>
       </li>
     </ul>
   </main>
@@ -67,27 +75,69 @@ import InputText from 'primevue/inputtext'
 import { useToast } from 'primevue/usetoast'
 import { getCurrentUser } from 'aws-amplify/auth'
 import { useRouter } from 'vue-router'
+import { getUrl } from 'aws-amplify/storage'
 
 const router = useRouter()
 
 const currentUser = ref()
+const imgLinks = ref()
+const recipeURLReady = ref(false)
 
 const toast = useToast()
 
 const client = generateClient<Schema>()
 
-// create a reactive reference to the array of todos
-const recipes = ref<Array<Schema['Recipe']['type']>>([])
+type ExtendedRecipe = Schema['Recipe']['type'] & {
+  imageLinks: string[]
+  hasLoadedImages: boolean
+}
 
-// create a reactive reference to the authenticated user
+const recipes = ref<ExtendedRecipe[]>([])
 
-function listRecipes() {
+async function listRecipes() {
   client.models.Recipe.observeQuery().subscribe({
-    next: ({ items, isSynced }) => {
-      recipes.value = items
+    next: async ({ items, isSynced }) => {
+      recipes.value = items.map((recipe) => ({
+        ...recipe,
+        imageLinks: [], // Initialize imageLinks as an empty array
+        hasLoadedImages: false, // Initialize hasLoadedImages as false
+      }))
+      await Promise.all(recipes.value.map((recipe) => getImages(recipe)))
     },
   })
 }
+
+async function getImages(recipe: ExtendedRecipe) {
+  if (recipe.imageFileNames) {
+    const links: string[] = []
+    for (const fileName of recipe.imageFileNames) {
+      const getLink = await getUrl({
+        path: `recipe-manager/images/${recipe.id}/${fileName}`,
+        options: {
+          bucket: `recipe-manager-bucket`,
+          expiresIn: 1200,
+        },
+      })
+      links.push(getLink.url.toString())
+    }
+    recipe.imageLinks = [...links] // Assign the array of URLs to imageLinks
+    recipe.hasLoadedImages = true // Set hasLoadedImages to true after loading
+  }
+}
+
+//   const links = []
+//   recipes.imageFileNames.forEach(async (fileName) => {
+//   const getLink = await getUrl({
+//         path: `recipe-manager/images/${recipe.value.id}/${file.name}`,
+//         options: {
+//           bucket: 'recipe-manager-bucket/' + recipe.id,
+//           expiresIn: 1200,
+//         },
+//       })
+//      links.push(getLink.url.toString())
+//     }
+//     recipe.imageLinks = links
+// }
 
 // fetch todos when the component is mounted
 onMounted(async () => {
