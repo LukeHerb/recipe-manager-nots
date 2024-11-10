@@ -1,14 +1,15 @@
 <template>
   <Toast />
-  <main
-    class="flex flex-col m-auto justify-center content-center items-center p-8 md:py-12"
-  >
+  <main class="flex flex-col m-auto justify-center content-center items-center p-8 md:py-12">
+    <!-- Added SearchBar component -->
+    <SearchBar @search="handleSearch" class="w-11/12 md:w-full mb-6" />
+
     <ul class="grid gap-6 grid-cols-2 w-11/12 md:w-full">
       <li
-        v-for="recipe in recipes"
-        :key="recipe.id ?? ''"
-        @click="goToRecipe(recipe.id ?? '')"
-        class="gap-6 border-b-8 border-2 bg-inherit border-gold recipe-card cursor-pointer h-96 p-6 rounded-2xl w-full flex justify-between content-center mb-4"
+          v-for="recipe in filteredRecipes"
+          :key="recipe.id ?? ''"
+          @click="goToRecipe(recipe.id ?? '')"
+          class="gap-6 border-b-8 border-2 bg-inherit border-gold recipe-card cursor-pointer h-96 p-6 rounded-2xl w-full flex justify-between content-center mb-4"
       >
         <div
           class="recipe-details w-6/12 flex justify-between items-end h-full mt-auto"
@@ -67,7 +68,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import type { Schema } from '../../amplify/data/resource'
 import { generateClient } from 'aws-amplify/data'
 import Button from 'primevue/button'
@@ -76,53 +77,140 @@ import { useToast } from 'primevue/usetoast'
 import { getCurrentUser } from 'aws-amplify/auth'
 import { useRouter } from 'vue-router'
 import { getUrl } from 'aws-amplify/storage'
+import SearchBar from './search/SearchBar.vue'
 
 const router = useRouter()
+const client = generateClient<Schema>()
 
 const currentUser = ref()
 const imgLinks = ref()
 const recipeURLReady = ref(false)
+const searchCriteria = ref({
+  title: '',
+  courses: [],
+  difficulties: [],
+  minTime: null,
+  maxTime: null,
+  includedIngredients: [],
+  excludedIngredients: []
+})
 
 const toast = useToast()
 
-const client = generateClient<Schema>()
-
-type ExtendedRecipe = Schema['Recipe']['type'] & {
+type ExtendedRecipe = {
+  id: string
+  createdBy: string
+  name: string
+  description: string
+  course: string
+  time: string
+  numServings: string
+  difficulty: string
+  ingredients: string[]
+  instructions: string[]
+  owner: string
+  imageFileNames: string[]
   imageLinks: string[]
   hasLoadedImages: boolean
+  createdAt: string
+  updatedAt: string
 }
 
 const recipes = ref<ExtendedRecipe[]>([])
 
+// Add computed property for filtered recipes
+const filteredRecipes = computed(() => {
+  return recipes.value.filter(recipe => {
+    // Title filter
+    if (searchCriteria.value.title && !recipe.name.toLowerCase().includes(searchCriteria.value.title.toLowerCase())) {
+      return false
+    }
+
+    // Course filter
+    if (searchCriteria.value.courses.length > 0 && !searchCriteria.value.courses.includes(recipe.course)) {
+      return false
+    }
+
+    // Difficulty filter
+    if (searchCriteria.value.difficulties.length > 0 && !searchCriteria.value.difficulties.includes(recipe.difficulty)) {
+      return false
+    }
+
+    // Ingredients filter
+    if (searchCriteria.value.includedIngredients.length > 0) {
+      const hasAllIngredients = searchCriteria.value.includedIngredients.every(ingredient =>
+          recipe.ingredients.some(recipeIngredient =>
+              recipeIngredient.toLowerCase().includes(ingredient.toLowerCase())
+          )
+      )
+      if (!hasAllIngredients) return false
+    }
+
+    if (searchCriteria.value.excludedIngredients.length > 0) {
+      const hasExcludedIngredients = searchCriteria.value.excludedIngredients.some(ingredient =>
+          recipe.ingredients.some(recipeIngredient =>
+              recipeIngredient.toLowerCase().includes(ingredient.toLowerCase())
+          )
+      )
+      if (hasExcludedIngredients) return false
+    }
+
+    return true
+  })
+})
+
+// Add search handler
+function handleSearch(criteria: any) {
+  searchCriteria.value = { ...criteria }
+}
+
+// Define the getImages function
+async function getImages(recipe: ExtendedRecipe) {
+  if (recipe.imageFileNames && recipe.imageFileNames.length > 0) {
+    const links: string[] = []
+    for (const fileName of recipe.imageFileNames) {
+      try {
+        const getLink = await getUrl({
+          path: `recipe-manager/images/${recipe.id}/${fileName}`,
+          options: {
+            bucket: 'recipe-manager-bucket',
+            expiresIn: 1200,
+          },
+        })
+        links.push(getLink.url.toString())
+      } catch (error) {
+        console.error('Error getting image URL:', error)
+      }
+    }
+    recipe.imageLinks = links
+    recipe.hasLoadedImages = true
+  }
+}
+
 async function listRecipes() {
   client.models.Recipe.observeQuery().subscribe({
-    next: async ({ items, isSynced }) => {
+    next: async ({ items }) => {
       recipes.value = items.map((recipe) => ({
-        ...recipe,
-        imageLinks: [], // Initialize imageLinks as an empty array
-        hasLoadedImages: false, // Initialize hasLoadedImages as false
+        id: recipe.id ?? '',
+        createdBy: recipe.createdBy ?? '',
+        name: recipe.name ?? '',
+        description: recipe.description ?? '',
+        course: recipe.course ?? '',
+        time: recipe.time ?? '',
+        numServings: recipe.numServings ?? '',
+        difficulty: recipe.difficulty ?? '',
+        ingredients: recipe.ingredients ?? [],
+        instructions: recipe.instructions ?? [],
+        owner: recipe.owner ?? '',
+        imageFileNames: recipe.imageFileNames ?? [],
+        imageLinks: [],
+        hasLoadedImages: false,
+        createdAt: recipe.createdAt ?? '',
+        updatedAt: recipe.updatedAt ?? ''
       }))
       await Promise.all(recipes.value.map((recipe) => getImages(recipe)))
     },
   })
-}
-
-async function getImages(recipe: ExtendedRecipe) {
-  if (recipe.imageFileNames) {
-    const links: string[] = []
-    for (const fileName of recipe.imageFileNames) {
-      const getLink = await getUrl({
-        path: `recipe-manager/images/${recipe.id}/${fileName}`,
-        options: {
-          bucket: `recipe-manager-bucket`,
-          expiresIn: 1200,
-        },
-      })
-      links.push(getLink.url.toString())
-    }
-    recipe.imageLinks = [...links] // Assign the array of URLs to imageLinks
-    recipe.hasLoadedImages = true // Set hasLoadedImages to true after loading
-  }
 }
 
 //   const links = []
