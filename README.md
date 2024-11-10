@@ -88,4 +88,3 @@ The website includes:
 - SEO optimization
 - PWA support
 - Cross-browser compatibility
-```
