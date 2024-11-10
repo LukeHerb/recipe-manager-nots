@@ -1,4 +1,3 @@
-```markdown
 # Recipe Tutorial Website
 
 A modern web application for sharing and discovering cooking recipes, built with Vue 3 and AWS services.
