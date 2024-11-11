@@ -1,7 +1,7 @@
 <template>
-  <div class="filter-panel w-full bg-white rounded-xl shadow-sm p-6">
+  <div class="filter-panel w-full bg-[#ebe7e4] rounded-xl shadow-md p-6 border-2 border-[#bca067]/20">
     <div class="flex flex-col gap-4">
-      <!-- Course Selection -->
+      <!-- Course Selection Filter -->
       <div class="filter-section">
         <FloatLabel variant="on">
           <MultiSelect
@@ -15,9 +15,9 @@
         </FloatLabel>
       </div>
 
-      <!-- Time Range Selection -->
+      <!-- Time Range Selection Filter -->
       <div class="filter-section">
-        <span class="text-sm text-gray-600 mb-2 block">Cooking Time Range</span>
+        <span class="text-sm text-[#2c3e50] mb-2 block font-medium">Cooking Time Range</span>
         <div class="flex gap-4">
           <FloatLabel variant="on" class="w-1/2">
             <Select
@@ -40,7 +40,7 @@
         </div>
       </div>
 
-      <!-- Difficulty Selection -->
+      <!-- Difficulty Level Filter -->
       <div class="filter-section">
         <FloatLabel variant="on">
           <MultiSelect
@@ -54,36 +54,36 @@
         </FloatLabel>
       </div>
 
-      <!-- Applied Filters Display -->
+      <!-- Active Filters Display -->
       <div v-if="hasActiveFilters" class="filter-tags flex flex-wrap gap-2 mt-2">
         <Tag
             v-for="course in selectedFilters.courses"
             :key="'course-' + course.value"
             :value="course.name"
-            severity="info"
+            class="custom-tag-course"
             @remove="removeCourse(course)"
         />
         <Tag
             v-for="difficulty in selectedFilters.difficulties"
             :key="'diff-' + difficulty.value"
             :value="difficulty.name"
-            severity="warning"
+            class="custom-tag-difficulty"
             @remove="removeDifficulty(difficulty)"
         />
         <Tag
             v-if="hasTimeFilter"
             :value="timeRangeText"
-            severity="success"
+            class="custom-tag-time"
             @remove="clearTimeRange"
         />
       </div>
 
-      <!-- Clear Filters Button -->
+      <!-- Clear All Filters Button -->
       <div v-if="hasActiveFilters" class="clear-filters flex justify-end mt-2">
         <Button
             label="Clear All Filters"
             icon="fa-solid fa-times"
-            class="p-button-outlined p-button-secondary"
+            class="p-button-outlined p-button-gold-outlined"
             @click="clearAllFilters"
         />
       </div>
@@ -99,6 +99,7 @@ import FloatLabel from 'primevue/floatlabel'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 
+// Type definitions for filter options and state
 interface FilterOption {
   name: string
   value: string
@@ -115,7 +116,7 @@ interface FilterState {
   timeRange: TimeRange
 }
 
-// Course options based on existing app configuration
+// Available course options for filtering
 const courseOptions: FilterOption[] = [
   { name: 'Appetizer', value: 'appetizer' },
   { name: 'Entree', value: 'entree' },
@@ -125,14 +126,14 @@ const courseOptions: FilterOption[] = [
   { name: 'Other', value: 'other' }
 ]
 
-// Difficulty options based on existing app configuration
+// Available difficulty levels for filtering
 const difficultyOptions: FilterOption[] = [
   { name: 'Easy', value: 'easy' },
   { name: 'Medium', value: 'medium' },
   { name: 'Hard', value: 'hard' }
 ]
 
-// Time options based on existing app configuration
+// Available time options for filtering
 const timeOptions = [
   '15 minutes',
   '30 minutes',
@@ -149,7 +150,7 @@ const timeOptions = [
   '8 hours'
 ]
 
-// Initialize selected filters state
+// Initialize reactive filter state
 const selectedFilters = reactive<FilterState>({
   courses: [],
   difficulties: [],
@@ -159,10 +160,10 @@ const selectedFilters = reactive<FilterState>({
   }
 })
 
-// Emit events
+// Define emitted events
 const emit = defineEmits(['filter-change'])
 
-// Computed properties
+// Computed properties for filter state
 const hasActiveFilters = computed(() => {
   return (
       selectedFilters.courses.length > 0 ||
@@ -182,7 +183,7 @@ const timeRangeText = computed(() => {
   return `${min} - ${max}`
 })
 
-// Methods
+// Filter change handlers
 const emitFilterChange = () => {
   emit('filter-change', {
     courses: selectedFilters.courses.map(c => c.value),
@@ -191,13 +192,13 @@ const emitFilterChange = () => {
   })
 }
 
+// Time range handling
 const handleTimeChange = () => {
   if (
       selectedFilters.timeRange.min &&
       selectedFilters.timeRange.max &&
       getTimeInMinutes(selectedFilters.timeRange.min) > getTimeInMinutes(selectedFilters.timeRange.max)
   ) {
-    // Swap min and max if min is greater than max
     const temp = selectedFilters.timeRange.min
     selectedFilters.timeRange.min = selectedFilters.timeRange.max
     selectedFilters.timeRange.max = temp
@@ -205,12 +206,14 @@ const handleTimeChange = () => {
   emitFilterChange()
 }
 
+// Utility function to convert time string to minutes
 const getTimeInMinutes = (timeString: string): number => {
   const hours = timeString.includes('hour') ? parseInt(timeString) : 0
   const minutes = timeString.includes('minutes') ? parseInt(timeString) : 0
   return hours * 60 + minutes
 }
 
+// Filter removal handlers
 const removeCourse = (course: FilterOption) => {
   selectedFilters.courses = selectedFilters.courses.filter(c => c.value !== course.value)
   emitFilterChange()
@@ -227,6 +230,7 @@ const clearTimeRange = () => {
   emitFilterChange()
 }
 
+// Reset all filters
 const clearAllFilters = () => {
   selectedFilters.courses = []
   selectedFilters.difficulties = []
@@ -237,26 +241,135 @@ const clearAllFilters = () => {
 </script>
 
 <style scoped>
-:deep(.p-multiselect) {
-  width: 100%;
+/* Custom color variables */
+:root {
+  --gold-color: #bca067;
+  --gold-hover: #ab8f56;
+  --gold-light: rgba(188, 160, 103, 0.1);
+  --background-color: #ebe7e4;
 }
 
+/* PrimeVue component customization */
+:deep(.p-multiselect) {
+  width: 100%;
+  border-color: rgba(188, 160, 103, 0.3);
+}
+
+:deep(.p-multiselect:not(.p-disabled).p-focus) {
+  border-color: #bca067;
+  box-shadow: 0 0 0 1px #bca067;
+}
+
+:deep(.p-multiselect-item.p-highlight) {
+  background-color: rgba(188, 160, 103, 0.1) !important;
+  color: #bca067 !important;
+}
+
+:deep(.p-select:not(.p-disabled).p-focus) {
+  border-color: #bca067;
+  box-shadow: 0 0 0 1px #bca067;
+}
+
+/* Tag styling */
 :deep(.p-tag) {
   padding: 0.25rem 0.75rem;
+  transition: all 0.2s ease;
 }
 
 :deep(.p-tag-icon) {
   margin-left: 0.5rem;
   cursor: pointer;
+  opacity: 0.7;
 }
 
+:deep(.p-tag:hover) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+:deep(.p-tag:hover .p-tag-icon) {
+  opacity: 1;
+}
+
+/* Custom tag colors */
+:deep(.custom-tag-course) {
+  background-color: #bca067 !important;
+  color: white !important;
+}
+
+:deep(.custom-tag-difficulty) {
+  background-color: #ab8f56 !important;
+  color: white !important;
+}
+
+:deep(.custom-tag-time) {
+  background-color: #8b7544 !important;
+  color: white !important;
+}
+
+/* Gold outlined button */
+:deep(.p-button-gold-outlined) {
+  color: #bca067;
+  border-color: #bca067;
+}
+
+:deep(.p-button-gold-outlined:hover) {
+  background-color: rgba(188, 160, 103, 0.1) !important;
+  border-color: #ab8f56 !important;
+  color: #ab8f56 !important;
+}
+
+/* Filter section styling */
 .filter-section {
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid rgba(188, 160, 103, 0.2);
   padding-bottom: 1rem;
 }
 
 .filter-section:last-child {
   border-bottom: none;
   padding-bottom: 0;
+}
+
+/* Input focus states */
+:deep(.p-inputtext:focus) {
+  border-color: #bca067 !important;
+  box-shadow: 0 0 0 1px #bca067 !important;
+}
+
+/* Float label color when focused */
+:deep(.p-float-label input:focus ~ label),
+:deep(.p-float-label textarea:focus ~ label) {
+  color: #bca067 !important;
+}
+
+/* Dropdown customization */
+:deep(.p-dropdown-panel) {
+  border-color: #bca067;
+}
+
+:deep(.p-dropdown-item.p-highlight) {
+  background-color: rgba(188, 160, 103, 0.1) !important;
+  color: #bca067 !important;
+}
+
+/* MultiSelect panel */
+:deep(.p-multiselect-panel) {
+  border-color: #bca067;
+}
+
+/* Hover states */
+:deep(.p-dropdown-item:hover),
+:deep(.p-multiselect-item:hover) {
+  background-color: rgba(188, 160, 103, 0.1) !important;
+  color: #bca067 !important;
+}
+
+/* Transition effects */
+.filter-panel {
+  transition: all 0.3s ease;
+}
+
+.filter-tags {
+  transition: all 0.3s ease;
 }
 </style>

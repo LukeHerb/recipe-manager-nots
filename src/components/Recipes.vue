@@ -1,68 +1,19 @@
 <template>
   <Toast />
   <main class="flex flex-col m-auto justify-center content-center items-center p-8 md:py-12">
-    <!-- Added SearchBar component -->
-    <SearchBar @search="handleSearch" class="w-11/12 md:w-full mb-6" />
+    <!-- Search Interface -->
+    <SearchBar
+        @search="handleSearch"
+        class="w-11/12 md:w-full mb-6"
+    />
 
+    <!-- Recipe Grid -->
     <ul class="grid gap-6 grid-cols-2 w-11/12 md:w-full">
-      <li
+      <RecipeCard
           v-for="recipe in filteredRecipes"
           :key="recipe.id ?? ''"
-          @click="goToRecipe(recipe.id ?? '')"
-          class="gap-6 border-b-8 border-2 bg-inherit border-gold recipe-card cursor-pointer h-96 p-6 rounded-2xl w-full flex justify-between content-center mb-4"
-      >
-        <div
-          class="recipe-details w-6/12 flex justify-between items-end h-full mt-auto"
-        >
-          <div class="flex flex-col h-full gap-6">
-            <span class="text-2xl font-light text-gold">{{
-              recipe.course
-            }}</span>
-            <div class="flex gap-4">
-              <p class="flex items-center content-center gap-1">
-                <span
-                  v-for="dot in getDifficultyDots(recipe.difficulty || 'Easy')"
-                  :key="dot"
-                  :class="dotClass(dot)"
-                  class="dot"
-                ></span>
-              </p>
-              <p class="flex items-center content-center gap-2">
-                <span class="self-start">
-                  <i class="fa-solid fa-clock text-sm text-gold"></i>
-                </span>
-                <span class="self-start md:text-sm">{{ recipe.time }}</span>
-              </p>
-              <p class="flex items-center content-center gap-2">
-                <span class="self-start">
-                  <i class="fa-solid fa-utensils text-sm text-gold"></i>
-                </span>
-                <span class="self-start md:text-sm">{{
-                  recipe.numServings
-                }}</span>
-              </p>
-            </div>
-            <h3 class="font-bold text-3xl tracking-wider titles">
-              {{ recipe.name }}
-            </h3>
-            <p class="text-base tracking-wide text-ellipsis overflow-hidden">
-              {{ recipe.description }}
-            </p>
-            <p class="mt-auto">Created by {{ recipe.createdBy }}</p>
-          </div>
-        </div>
-        <div
-          class="border-2 border-black flex justify-center items-center image-placeholder w-6/12 h-full bg-green-400 rounded-2xl overflow-hidden"
-        >
-          <img
-            v-if="recipe.hasLoadedImages"
-            v-for="image in recipe.imageLinks"
-            :src="image"
-            alt="recipe image"
-            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-          />
-        </div>
-      </li>
+          :recipe="recipe"
+      />
     </ul>
   </main>
 </template>
@@ -71,20 +22,17 @@
 import { onMounted, ref, computed } from 'vue'
 import type { Schema } from '../../amplify/data/resource'
 import { generateClient } from 'aws-amplify/data'
-import Button from 'primevue/button'
-import InputText from 'primevue/inputtext'
 import { useToast } from 'primevue/usetoast'
 import { getCurrentUser } from 'aws-amplify/auth'
-import { useRouter } from 'vue-router'
 import { getUrl } from 'aws-amplify/storage'
 import SearchBar from './search/SearchBar.vue'
+import RecipeCard from './recipe/RecipeCard.vue'
 
-const router = useRouter()
+// Initialize AWS client
 const client = generateClient<Schema>()
 
+// State Management
 const currentUser = ref()
-const imgLinks = ref()
-const recipeURLReady = ref(false)
 const searchCriteria = ref({
   title: '',
   courses: [],
@@ -94,10 +42,10 @@ const searchCriteria = ref({
   includedIngredients: [],
   excludedIngredients: []
 })
-
 const toast = useToast()
 
-type ExtendedRecipe = {
+// Type definition for extended recipe data
+interface ExtendedRecipe {
   id: string
   createdBy: string
   name: string
@@ -116,27 +64,32 @@ type ExtendedRecipe = {
   updatedAt: string
 }
 
+// Recipe state
 const recipes = ref<ExtendedRecipe[]>([])
 
-// Add computed property for filtered recipes
+// Computed property for filtered recipes
 const filteredRecipes = computed(() => {
   return recipes.value.filter(recipe => {
-    // Title filter
+    // Apply all filters
     if (searchCriteria.value.title && !recipe.name.toLowerCase().includes(searchCriteria.value.title.toLowerCase())) {
       return false
     }
-
-    // Course filter
-    if (searchCriteria.value.courses.length > 0 && !searchCriteria.value.courses.includes(recipe.course)) {
+    if (searchCriteria.value.courses.length > 0 && !searchCriteria.value.courses.includes(recipe.course.toLowerCase())) {
       return false
     }
-
-    // Difficulty filter
-    if (searchCriteria.value.difficulties.length > 0 && !searchCriteria.value.difficulties.includes(recipe.difficulty)) {
+    if (searchCriteria.value.difficulties.length > 0 && !searchCriteria.value.difficulties.includes(recipe.difficulty.toLowerCase())) {
       return false
     }
+    if (searchCriteria.value.minTime || searchCriteria.value.maxTime) {
+      const recipeTime = getTimeInMinutes(recipe.time)
+      const minTime = searchCriteria.value.minTime ? getTimeInMinutes(searchCriteria.value.minTime) : 0
+      const maxTime = searchCriteria.value.maxTime ? getTimeInMinutes(searchCriteria.value.maxTime) : Infinity
+      if (recipeTime < minTime || recipeTime > maxTime) {
+        return false
+      }
+    }
 
-    // Ingredients filter
+    // Ingredient filters
     if (searchCriteria.value.includedIngredients.length > 0) {
       const hasAllIngredients = searchCriteria.value.includedIngredients.every(ingredient =>
           recipe.ingredients.some(recipeIngredient =>
@@ -159,37 +112,54 @@ const filteredRecipes = computed(() => {
   })
 })
 
-// Add search handler
+// Search handler function
 function handleSearch(criteria: any) {
-  searchCriteria.value = { ...criteria }
-}
-
-// Define the getImages function
-async function getImages(recipe: ExtendedRecipe) {
-  if (recipe.imageFileNames && recipe.imageFileNames.length > 0) {
-    const links: string[] = []
-    for (const fileName of recipe.imageFileNames) {
-      try {
-        const getLink = await getUrl({
-          path: `recipe-manager/images/${recipe.id}/${fileName}`,
-          options: {
-            bucket: 'recipe-manager-bucket',
-            expiresIn: 1200,
-          },
-        })
-        links.push(getLink.url.toString())
-      } catch (error) {
-        console.error('Error getting image URL:', error)
-      }
-    }
-    recipe.imageLinks = links
-    recipe.hasLoadedImages = true
+  searchCriteria.value = {
+    title: criteria.title || '',
+    courses: criteria.courses.map((course: string) => course.toLowerCase()),
+    difficulties: criteria.difficulties.map((difficulty: string) => difficulty.toLowerCase()),
+    minTime: criteria.timeRange?.min || null,
+    maxTime: criteria.timeRange?.max || null,
+    includedIngredients: criteria.includedIngredients || [],
+    excludedIngredients: criteria.excludedIngredients || []
   }
 }
 
+// Improved image loading function
+async function getImages(recipe: ExtendedRecipe) {
+  if (recipe.imageFileNames && recipe.imageFileNames.length > 0) {
+    try {
+      const imagePromises = recipe.imageFileNames.map(async (fileName) => {
+        try {
+          const getLink = await getUrl({
+            path: `recipe-manager/images/${recipe.id}/${fileName}`,
+            options: {
+              bucket: 'recipe-manager-bucket',
+              expiresIn: 3600, // Cache for 1 hour
+            },
+          })
+          return getLink.url.toString()
+        } catch (error) {
+          console.error('Error getting image URL:', error)
+          return null
+        }
+      })
+      const resolvedLinks = await Promise.all(imagePromises)
+      recipe.imageLinks = resolvedLinks.filter((link): link is string => link !== null)
+      recipe.hasLoadedImages = recipe.imageLinks.length > 0
+    } catch (error) {
+      console.error('Error processing images:', error)
+      recipe.hasLoadedImages = false
+      recipe.imageLinks = []
+    }
+  }
+}
+
+// Recipe listing function with improved image loading
 async function listRecipes() {
   client.models.Recipe.observeQuery().subscribe({
     next: async ({ items }) => {
+      // First update recipes without images
       recipes.value = items.map((recipe) => ({
         id: recipe.id ?? '',
         createdBy: recipe.createdBy ?? '',
@@ -208,80 +178,23 @@ async function listRecipes() {
         createdAt: recipe.createdAt ?? '',
         updatedAt: recipe.updatedAt ?? ''
       }))
-      await Promise.all(recipes.value.map((recipe) => getImages(recipe)))
+      // Then load images in parallel
+      await Promise.all(recipes.value.map(recipe => getImages(recipe)))
     },
   })
 }
 
-//   const links = []
-//   recipes.imageFileNames.forEach(async (fileName) => {
-//   const getLink = await getUrl({
-//         path: `recipe-manager/images/${recipe.value.id}/${file.name}`,
-//         options: {
-//           bucket: 'recipe-manager-bucket/' + recipe.id,
-//           expiresIn: 1200,
-//         },
-//       })
-//      links.push(getLink.url.toString())
-//     }
-//     recipe.imageLinks = links
-// }
+// Utility function for time conversion
+function getTimeInMinutes(timeString: string): number {
+  if (!timeString) return 0
+  const hours = timeString.includes('hour') ? parseInt(timeString.split(' ')[0]) : 0
+  const minutes = timeString.includes('minutes') ? parseInt(timeString.split(' ')[0]) : 0
+  return (hours * 60) + minutes
+}
 
-// fetch todos when the component is mounted
+// Component lifecycle hook
 onMounted(async () => {
   currentUser.value = await getCurrentUser()
-  console.log(currentUser.value)
   listRecipes()
 })
-
-function getDifficultyDots(difficulty: string) {
-  switch (difficulty) {
-    case 'Easy':
-      return [1, 0, 0]
-    case 'Medium':
-      return [2, 2, 0]
-    case 'Hard':
-      return [3, 3, 3]
-    default:
-      return [0, 0, 0]
-  }
-}
-
-function dotClass(dot: number) {
-  switch (dot) {
-    case 1:
-      return 'bg-green-500'
-    case 2:
-      return 'bg-orange-400'
-    case 3:
-      return 'bg-red-600'
-    default:
-      return 'bg-gray-300'
-  }
-}
-
-function goToRecipe(id: string) {
-  router.push(`/recipe/${id}`)
-}
 </script>
-
-<style>
-.text-gold {
-  color: #bca067;
-}
-
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  display: inline-block;
-}
-
-.border-gold {
-  border-color: #bca067;
-}
-
-.text-gold {
-  color: #bca067;
-}
-</style>

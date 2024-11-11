@@ -1,336 +1,304 @@
 <template>
   <div v-if="recipe && currentUser" class="recipe-details">
-    <main
-      class="flex flex-col m-auto justify-center content-center items-center p-8"
-    >
-      <ul class="grid gap-6 grid-cols-2 w-10/12">
-        <li
-          class="border-b-8 border-2 bg-inherit border-gold recipe-card h-auto p-6 rounded-xl w-full flex justify-between content-center mb-4 gap-12"
-        >
-          <div
-            class="recipe-details w-full flex justify-between items-end h-full mt-auto"
-          >
-            <div class="flex flex-col h-full gap-12 w-full">
-              <div class="flex flex-col gap-4">
-                <div class="flex justify-between items-center">
-                  <p class="text-sm">{{ recipe.data.createdBy }}</p>
-                  <div v-if="recipe.data.owner === currentUser.username">
-                    <i
-                      @click="toggle"
-                      class="fa-solid fa-ellipsis text-2xl cursor-pointer"
-                    ></i>
-                    <Menu
-                      ref="menu"
-                      id="overlay_menu"
-                      :model="items"
-                      :popup="true"
-                    />
-                    <Menu
-                      ref="menu"
-                      id="overlay_menu"
-                      :model="items"
-                      :popup="true"
-                    />
-                  </div>
-                </div>
-                <h3
-                  class="font-semibold text-5xl tracking-wider titles text-gold"
-                >
-                  {{ recipe.data.name }}
-                </h3>
-              </div>
-              <div class="flex flex-col gap-6">
-                <div
-                  class="border-2 border-black flex justify-center items-center image-placeholder w-img h-img bg-green-400 rounded-2xl overflow-hidden"
-                ></div>
-                <div class="flex gap-8 items-center justify-center">
-                  <p class="flex items-center content-center gap-1">
-                    <span
-                      v-for="dot in getDifficultyDots(recipe.data.difficulty)"
-                      :key="dot"
-                      :class="dotClass(dot)"
-                      class="dot"
-                    ></span>
-                  </p>
-                  <div
-                    class="flex items-center content-center gap-3 justify-center"
-                  >
-                    <span class="flex items-center justify-center">
-                      <i class="fa-solid fa-clock text-base text-gold"></i>
-                    </span>
-                    <span class="self-start text-sm">{{
-                      recipe.data.time
-                    }}</span>
-                  </div>
-                  <div class="flex items-center content-center gap-3">
-                    <span class="flex items-center justify-center">
-                      <i class="fa-solid fa-utensils text-base text-gold"></i>
-                    </span>
-                    <span class="self-start text-sm">{{
-                      recipe.data.numServings
-                    }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <p class="text-base tracking-wide">
-                {{ recipe.data.description }}
-              </p>
-              <div class="flex flex-col gap-4">
-                <span class="text-2xl font-semibold titles">Ingredients:</span>
-                <ol class="list-small-disc list-inside">
-                  <li
-                    v-for="ingredient in recipe.data.ingredients"
-                    :key="ingredient"
-                  >
-                    <span
-                      class="text-base leading-7 pl-5 tracking-wider font-light"
-                      >{{ ingredient }}</span
-                    >
-                  </li>
-                </ol>
-              </div>
-              <div class="flex flex-col gap-4">
-                <span class="text-2xl font-semibold titles">Instructions:</span>
-                <ol class="list-decimal list-inside">
-                  <li
-                    v-for="instruction in recipe.data.instructions"
-                    :key="instruction"
-                  >
-                    <span
-                      class="text-base leading-7 pl-5 tracking-wider font-light"
-                      >{{ instruction }}</span
-                    >
-                  </li>
-                </ol>
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <!-- Container for recipe details, centered and padded -->
+      <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+        <div class="relative">
+          <!-- Recipe image container with fallback for loading and error states -->
+          <div class="h-96 w-full bg-gray-200 overflow-hidden">
+            <div v-if="isImageLoading" class="w-full h-full bg-gray-200 animate-pulse"></div>
+            <!-- Displays the image or a placeholder icon if no image is available -->
+            <div v-else class="w-full h-full">
+              <img
+                  v-if="recipe.data.imageLinks && recipe.data.imageLinks.length > 0"
+                  :src="recipe.data.imageLinks[0]"
+                  :alt="recipe.data.name"
+                  class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                  @load="handleImageLoad"
+                  @error="handleImageError"
+                  loading="lazy"
+              />
+              <div v-else class="w-full h-full flex items-center justify-center bg-gray-100">
+                <i class="fa-solid fa-image text-gray-400 text-4xl"></i>
               </div>
             </div>
           </div>
-        </li>
-        <div class="flex flex-col gap-4 w-full">
-          <div
-            class="flex flex-col gap-2"
-            v-if="recipe.data.owner !== currentUser.username"
-          >
-            <div class="flex gap-1">
-              <span
-                v-for="star in 5"
-                :key="star"
-                @click="setRating(star)"
-                class="star cursor-pointer"
+          <!-- Recipe title, author, time, and servings displayed at the bottom of the image -->
+          <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-8">
+            <div class="flex justify-between items-start">
+              <h1 class="text-4xl font-bold text-white mb-4">{{ recipe.data.name }}</h1>
+              <button
+                  v-if="showEditDelete"
+                  class="p-2 text-white hover:bg-black/20 rounded-full transition-colors"
+                  @click="menu?.toggle"
               >
-                <i
-                  :class="
-                    star <= reviewRating
-                      ? 'fa-solid fa-star fa-xl'
-                      : 'fa-regular fa-star fa-xl'
-                  "
-                ></i>
-              </span>
+                <i class="fa-solid fa-ellipsis-vertical"></i>
+              </button>
             </div>
-            <Textarea v-model="reviewComment" placeholder="Enter Your Review" />
-            <Button severity="success" @click="addReview"
-              >Leave Your Review</Button
-            >
-          </div>
-          <li
-            v-for="review in recipe.reviews"
-            :key="review.id"
-            class="border-b-8 border-2 bg-inherit border-gold recipe-card cursor-pointer h-auto p-6 rounded-xl w-full flex justify-between content-center mb-4 gap-12"
-          >
-            <div
-              class="recipe-details flex justify-between items-end h-full mt-auto w-full"
-            >
-              <div class="flex flex-col h-full gap-12 w-full">
-                <div class="flex flex-col gap-4">
-                  <div class="flex w-full items-center justify-between">
-                    <p class="text-base">{{ review.createdBy }}</p>
-                    <div class="flex gap-2">
-                      <span
-                        v-for="star in getStars(review.reviewStars)"
-                        :key="star"
-                        class="star"
-                      >
-                        <i class="fa-solid fa-star"></i>
-                      </span>
-                    </div>
-                  </div>
-                  <div class="flex items-center justify-between">
-                    <p class="text-base tracking-wide">
-                      {{ review.reviewText }}
-                    </p>
-                    <i
-                      class="fa-regular fa-trash-can text-red-500 text-xl cursor-pointer"
-                      @click="deleteReview(review.id)"
-                      v-if="currentUser.username === review.owner"
-                    ></i>
-                  </div>
-                </div>
+            <div class="flex items-center gap-6 text-white">
+              <p class="flex items-center gap-2">
+                <i class="fa-solid fa-user text-gold"></i>
+                {{ recipe.data.createdBy }}
+              </p>
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-clock text-gold"></i>
+                {{ recipe.data.time }}
+              </div>
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-utensils text-gold"></i>
+                {{ recipe.data.numServings }} servings
               </div>
             </div>
-          </li>
+          </div>
         </div>
-      </ul>
+        <!-- Recipe details: difficulty, description, ingredients, and instructions -->
+        <div class="p-8">
+          <!-- Difficulty level represented by colored dots -->
+          <div class="flex items-center gap-4 mb-6">
+            <span class="text-lg font-semibold">Difficulty:</span>
+            <div class="flex gap-2">
+              <span
+                  v-for="(dot, index) in getDifficultyDots(recipe.data.difficulty)"
+                  :key="index"
+                  :class="dotClass(dot)"
+                  class="dot"
+              ></span>
+            </div>
+          </div>
+          <!-- Description section -->
+          <div class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4 text-gold">Description</h2>
+            <p class="text-gray-700 leading-relaxed">{{ recipe.data.description }}</p>
+          </div>
+          <!-- Ingredients list -->
+          <div class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4 text-gold">Ingredients</h2>
+            <ul class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <li
+                  v-for="(ingredient, index) in recipe.data.ingredients"
+                  :key="index"
+                  class="flex items-center gap-2 text-gray-700"
+              >
+                <i class="fa-solid fa-circle-check text-gold text-sm"></i>
+                {{ ingredient }}
+              </li>
+            </ul>
+          </div>
+          <!-- Step-by-step instructions list -->
+          <div class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4 text-gold">Instructions</h2>
+            <ol class="space-y-4">
+              <li
+                  v-for="(instruction, index) in recipe.data.instructions"
+                  :key="index"
+                  class="flex gap-4 text-gray-700"
+              >
+                <span class="flex-shrink-0 w-8 h-8 rounded-full bg-gold text-white flex items-center justify-center font-semibold">
+                  {{ index + 1 }}
+                </span>
+                <p class="pt-1">{{ instruction }}</p>
+              </li>
+            </ol>
+          </div>
+          <!-- Component for displaying and handling recipe reviews -->
+          <RecipeReview
+              v-if="recipe"
+              :recipe="recipe"
+              :currentUser="currentUser"
+          />
+        </div>
+      </div>
     </main>
+    <!-- Overlay menu for edit/delete options -->
+    <Menu ref="menu" :model="items" id="overlaymenu" v-if="showEditDelete" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
-import Button from 'primevue/button'
-import InputText from 'primevue/inputtext'
-import Textarea from 'primevue/textarea'
-import { getCurrentUser } from 'aws-amplify/auth'
-import { generateClient } from 'aws-amplify/data'
-import type { Schema } from '../../amplify/data/resource'
-import Rating from 'primevue/rating'
-import Menu from 'primevue/menu'
+import { ref, computed, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { getCurrentUser } from 'aws-amplify/auth';
+import { generateClient } from 'aws-amplify/data';
+import { getUrl } from '@aws-amplify/storage';
+import type { Schema } from '../../amplify/data/resource';
+import Menu from 'primevue/menu';
+import RecipeReview from './recipe/RecipeReview.vue';
 
-const currentUser = ref()
-const client = generateClient<Schema>()
-const recipes = ref<Array<Schema['Recipe']['type']>>([])
+interface Review {
+  id: string;
+  reviewStars: number;
+  reviewText: string;
+  recipeId: string;
+  createdBy: string;
+  owner: string;
+}
 
-const route = useRoute()
-const recipe = ref<any>(null)
-const showForm = ref(false)
-const reviewName = ref('')
-const reviewComment = ref('')
-const reviewRating = ref(0)
-const showMenu = ref(false)
-const items = [
+interface RecipeData {
+  id: string;
+  createdBy: string;
+  name: string;
+  description: string;
+  course: string;
+  time: string;
+  numServings: string;
+  difficulty: string;
+  ingredients: string[];
+  instructions: string[];
+  owner: string;
+  imageFileNames: string[];
+  imageLinks: string[];
+  hasLoadedImages: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface RecipeWithReviews {
+  data: RecipeData;
+  reviews?: Review[];
+}
+
+// State variables and references
+const currentUser = ref<any>(null);
+const client = generateClient<Schema>();
+const route = useRoute();
+const router = useRouter();
+const recipe = ref<RecipeWithReviews | null>(null);
+const menu = ref();
+const isImageLoading = ref(true);
+
+// Computed property to determine if the edit/delete menu should be shown
+const showEditDelete = computed(() => {
+  return currentUser.value?.signInDetails?.loginId === recipe.value?.data?.createdBy;
+});
+
+// Menu items for edit and delete actions
+const items = ref([
   {
     label: 'Edit',
     icon: 'fa-solid fa-edit',
-    command: () => {
-      console.log('Edit')
-    },
+    command: () => handleEdit(),
   },
   {
     label: 'Delete',
     icon: 'fa-solid fa-trash',
-    command: () => {
-      console.log('Delete')
-    },
+    command: () => handleDelete(),
   },
-]
-const menu = ref()
-const toggle = (event: Event) => {
-  menu.value.toggle(event)
-}
+]);
 
+// Function to handle image loading errors
+const handleImageError = (event: Event) => {
+  console.error('Image failed to load:', event);
+  isImageLoading.value = false;
+  if (event.target instanceof HTMLImageElement) {
+    event.target.src = '/images/recipe-placeholder.jpg';
+  }
+};
+
+// Function to mark image as loaded
+const handleImageLoad = () => {
+  isImageLoading.value = false;
+};
+
+// Fetches recipe data and current user info upon component mount
 onMounted(async () => {
-  const recipeId = Array.isArray(route.params.id)
-    ? route.params.id[0]
-    : route.params.id
-  recipe.value = await client.models.Recipe.get({ id: recipeId })
-  currentUser.value = await getCurrentUser()
+  try {
+    const recipeId = Array.isArray(route.params.id) ? route.params.id[0] : route.params.id;
+    const recipeResult = await client.models.Recipe.get({ id: recipeId });
+    currentUser.value = await getCurrentUser();
 
-  // Initialize reviews as an empty array if undefined
-  recipe.value.reviews = recipe.value.reviews || []
+    // Initialize recipe data and load images
+    const recipeData: RecipeData = {
+      ...recipeResult.data,
+      imageLinks: [],
+      hasLoadedImages: false,
+    };
+    recipe.value = { data: recipeData };
 
-  // Fetch and assign reviews to the recipe
-  const reviewList = await client.models.Review.list({
-    filter: { recipeId: { eq: recipeId } },
-  })
+    if (recipe.value.data.imageFileNames?.length > 0) {
+      const imagePromises = recipe.value.data.imageFileNames.map(async (fileName: string) => {
+        try {
+          const fullPath = `recipe-manager/${fileName}`;
+          const urlResult = await getUrl({
+            key: fullPath,
+            options: { accessLevel: 'protected', validateObjectExistence: true }
+          });
+          return urlResult.url.toString();
+        } catch (error) {
+          console.error('Error fetching image URL:', error);
+          return null;
+        }
+      });
 
-  // Map the reviews from the database to the `recipe.reviews` array
-  recipe.value.reviews = reviewList.data || []
-})
+      const urls = await Promise.all(imagePromises);
+      recipe.value.data.imageLinks = urls.filter((url): url is string => url !== null);
+      recipe.value.data.hasLoadedImages = true;
+      isImageLoading.value = false;
+    } else {
+      isImageLoading.value = false;
+    }
 
-function getDifficultyDots(difficulty: string) {
+    try {
+      const reviewList = await client.models.Review.list({
+        filter: { recipeId: { eq: recipeId } },
+      });
+      recipe.value.reviews = reviewList.data;
+    } catch (error) {
+      console.error('Error loading reviews:', error);
+      recipe.value.reviews = [];
+    }
+  } catch (error) {
+    console.error('Error loading recipe:', error);
+    isImageLoading.value = false;
+  }
+});
+
+// Navigates to the edit recipe page
+const handleEdit = () => {
+  router.push(`/recipe/edit/${recipe.value?.data?.id}`);
+};
+
+// Deletes the recipe and navigates back to the recipe list page
+const handleDelete = async () => {
+  if (confirm('Are you sure you want to delete this recipe?')) {
+    try {
+      await client.models.Recipe.delete({
+        id: recipe.value?.data?.id,
+      });
+      router.push('/recipes');
+    } catch (error) {
+      console.error('Error deleting recipe:', error);
+    }
+  }
+};
+
+// Maps difficulty levels to dot representations
+function getDifficultyDots(difficulty: string): number[] {
   switch (difficulty) {
-    case 'Easy':
-      return [1, 0, 0]
-    case 'Medium':
-      return [2, 2, 0]
-    case 'Hard':
-      return [3, 3, 3]
-    default:
-      return [0, 0, 0]
+    case 'Easy': return [1, 0, 0];
+    case 'Medium': return [2, 2, 0];
+    case 'Hard': return [3, 3, 3];
+    default: return [0, 0, 0];
   }
 }
 
-function dotClass(dot: number) {
+// Maps dot numbers to specific colors
+function dotClass(dot: number): string {
   switch (dot) {
-    case 1:
-      return 'bg-green-500'
-    case 2:
-      return 'bg-orange-400'
-    case 3:
-      return 'bg-red-600'
-    default:
-      return 'bg-gray-300'
+    case 1: return 'bg-green-500';
+    case 2: return 'bg-orange-400';
+    case 3: return 'bg-red-600';
+    default: return 'bg-gray-300';
   }
-}
-
-function getStars(rating: number) {
-  return Array(rating).fill(1)
-}
-
-function getEmptyStars(rating: number) {
-  return Array(5 - rating).fill(1)
-}
-
-function showInputForm() {
-  showForm.value = true
-}
-
-function setRating(star: number) {
-  reviewRating.value = star
-}
-
-async function addReview() {
-  if (!reviewComment.value || reviewRating.value === 0) {
-    alert('Please enter a comment and select a rating.')
-    return
-  }
-
-  // Define the new review data with necessary fields
-  const newReview = {
-    createdBy: currentUser.value.signInDetails.loginId,
-    reviewStars: reviewRating.value,
-    reviewText: reviewComment.value,
-    recipeId: recipe.value.data.id,
-    owner: currentUser.value.username,
-  }
-
-  // Save the new review to the database
-  const createdReview = await client.models.Review.create(newReview)
-  console.log(createdReview)
-
-  // Push the saved review to `recipe.reviews` so it updates immediately in the UI
-  recipe.value.reviews.push(createdReview.data)
-  console.log(recipe.value.reviews)
-
-  // Reset the form fields
-  reviewComment.value = ''
-  reviewRating.value = 0
-  showForm.value = false
-}
-
-async function deleteReview(reviewId: string) {
-  // Delete the review from the database
-  await client.models.Review.delete({ id: reviewId })
-
-  // Remove the review from the `recipe.reviews` array
-  recipe.value.reviews = recipe.value.reviews.filter(
-    (review: any) => review.id !== reviewId
-  )
 }
 </script>
 
 <style scoped>
-.star {
-  color: #f1c40f;
-  margin-right: 2px;
-}
-.w-img {
-  width: 100%;
+.text-gold {
+  color: #bca067;
 }
 
-.h-img {
-  height: 700px;
+.bg-gold {
+  background-color: #bca067;
 }
 
 .dot {
@@ -340,16 +308,33 @@ async function deleteReview(reviewId: string) {
   display: inline-block;
 }
 
-.list-small-disc {
-  list-style-type: disc;
-  font-size: 0.5rem;
+.recipe-details {
+  background-color: #f8f9fa;
+  min-height: 100vh;
 }
 
-.text-gold {
-  color: #bca067;
+.recipe-details img {
+  transition: transform 0.3s ease-in-out;
 }
 
-.border-gold {
-  border-color: #bca067;
+.recipe-details img:hover {
+  transform: scale(1.05);
+}
+
+.shadow-xl {
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 </style>
