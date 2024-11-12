@@ -4,14 +4,14 @@
     <!-- Background Image Container -->
     <div class="absolute inset-0">
       <img
-          src="@/assets/hero-image.jpeg"
-          alt="Delicious food preparation"
-          class="w-full h-full object-cover"
+        :src="backgroundImg"
+        alt="Delicious food preparation"
+        class="w-full h-full object-cover"
       />
       <!-- Gradient Overlay -->
       <div
-          class="absolute inset-0 bg-gradient-to-r from-black/70 to-black/50"
-          aria-hidden="true"
+        class="absolute inset-0 bg-gradient-to-r from-black/70 to-black/50"
+        aria-hidden="true"
       ></div>
     </div>
 
@@ -21,13 +21,17 @@
         <!-- Hero Text Content -->
         <div class="max-w-3xl">
           <!-- Main Heading -->
-          <h1 class="font-playfair text-4xl md:text-5xl lg:text-6xl text-white mb-6 leading-tight">
+          <h1
+            class="font-playfair text-4xl md:text-5xl lg:text-6xl text-white mb-6 leading-tight"
+          >
             Discover & Share Your
             <span class="text-[#bca067]">Culinary Journey</span>
           </h1>
 
           <!-- Subheading -->
-          <p class="font-montserrat text-lg md:text-xl text-gray-200 mb-8 leading-relaxed">
+          <p
+            class="font-montserrat text-lg md:text-xl text-gray-200 mb-8 leading-relaxed"
+          >
             Join our community of food enthusiasts. Share your favorite recipes,
             discover new dishes, and learn from experienced home chefs.
           </p>
@@ -35,14 +39,14 @@
           <!-- Call to Action Buttons -->
           <div class="flex flex-wrap gap-4">
             <button
-                @click="$router.push('/addRecipe')"
-                class="bg-[#bca067] hover:bg-[#ab8f56] text-white font-montserrat px-8 py-3 rounded-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
+              @click="$router.push('/addRecipe')"
+              class="bg-[#bca067] hover:bg-[#ab8f56] text-white font-montserrat px-8 py-3 rounded-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
             >
               Share Recipe
             </button>
             <button
-                @click="handleBrowseClick"
-                class="border-2 border-[#bca067] text-white hover:bg-[#bca067]/10 font-montserrat px-8 py-3 rounded-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
+              @click="handleBrowseClick"
+              class="border-2 border-[#bca067] text-white hover:bg-[#bca067]/10 font-montserrat px-8 py-3 rounded-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
             >
               Browse Recipes
             </button>
@@ -52,11 +56,19 @@
         <!-- Recipe Statistics -->
         <div class="absolute bottom-8 right-8">
           <div class="flex gap-8">
-            <div v-for="stat in statistics" :key="stat.label" class="text-center">
+            <div
+              v-for="stat in statistics"
+              :key="stat.label"
+              class="text-center"
+            >
               <p class="text-[#bca067] font-playfair text-4xl font-bold mb-2">
-                <span ref="counterRefs" class="counter-value">{{ stat.displayValue }}</span>
+                <span ref="counterRefs" class="counter-value">{{
+                  stat.displayValue
+                }}</span>
               </p>
-              <p class="text-white font-montserrat text-sm uppercase tracking-wider">
+              <p
+                class="text-white font-montserrat text-sm uppercase tracking-wider"
+              >
                 {{ stat.label }}
               </p>
             </div>
@@ -72,6 +84,7 @@ import { ref, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { generateClient } from 'aws-amplify/data'
 import type { Schema } from '../../../amplify/data/resource'
+import backgroundImg from '../../assets/hero-image.jpeg'
 
 // Initialize router and API client
 const router = useRouter()
@@ -104,9 +117,21 @@ interface Statistic {
 
 // Initialize statistics with default values
 const statistics = ref<Statistic[]>([
-  { label: 'Active Users', value: 0, displayValue: 0, startValue: 0, endValue: 0 },
-  { label: 'Recipes Shared', value: 0, displayValue: 0, startValue: 0, endValue: 0 },
-  { label: 'Reviews', value: 0, displayValue: 0, startValue: 0, endValue: 0 }
+  {
+    label: 'Active Users',
+    value: 0,
+    displayValue: 0,
+    startValue: 0,
+    endValue: 0,
+  },
+  {
+    label: 'Recipes Shared',
+    value: 0,
+    displayValue: 0,
+    startValue: 0,
+    endValue: 0,
+  },
+  { label: 'Reviews', value: 0, displayValue: 0, startValue: 0, endValue: 0 },
 ])
 
 // Animation configuration
@@ -126,7 +151,9 @@ function animateCounter(stat: Statistic) {
     if (frame <= FRAMES) {
       const progress = frame / FRAMES
       const easedProgress = easeOutQuart(progress)
-      const currentValue = Math.round(stat.startValue + (stat.endValue - stat.startValue) * easedProgress)
+      const currentValue = Math.round(
+        stat.startValue + (stat.endValue - stat.startValue) * easedProgress
+      )
       stat.displayValue = currentValue
       frame++
       requestAnimationFrame(animate)
@@ -147,8 +174,12 @@ const fetchStatistics = async () => {
     const totalReviews = reviewsResponse.data.length
 
     // Get unique users
-    const recipeCreators = new Set(recipesResponse.data.map(recipe => recipe.owner))
-    const reviewers = new Set(reviewsResponse.data.map(review => review.owner))
+    const recipeCreators = new Set(
+      recipesResponse.data.map((recipe) => recipe.owner)
+    )
+    const reviewers = new Set(
+      reviewsResponse.data.map((review) => review.owner)
+    )
     const uniqueUsers = new Set([...recipeCreators, ...reviewers])
 
     // Update statistics with new values and trigger animations
@@ -158,26 +189,26 @@ const fetchStatistics = async () => {
         value: uniqueUsers.size,
         displayValue: 0,
         startValue: 0,
-        endValue: uniqueUsers.size
+        endValue: uniqueUsers.size,
       },
       {
         label: 'Recipes Shared',
         value: totalRecipes,
         displayValue: 0,
         startValue: 0,
-        endValue: totalRecipes
+        endValue: totalRecipes,
       },
       {
         label: 'Reviews',
         value: totalReviews,
         displayValue: 0,
         startValue: 0,
-        endValue: totalReviews
-      }
+        endValue: totalReviews,
+      },
     ]
 
     // Start animations
-    statistics.value.forEach(stat => {
+    statistics.value.forEach((stat) => {
       animateCounter(stat)
     })
   } catch (error) {
@@ -220,7 +251,8 @@ img {
 }
 
 /* Text shadow for better readability */
-h1, p {
+h1,
+p {
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
