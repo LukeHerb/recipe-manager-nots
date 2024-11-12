@@ -1,3 +1,72 @@
+<script setup lang="ts">
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
+/**
+ * Interface representing a recipe with all its properties
+ */
+interface ExtendedRecipe {
+  id: string;
+  createdBy: string;
+  name: string;
+  description: string;
+  course: string;
+  time: string;
+  numServings: string;
+  difficulty: string;
+  ingredients: string[] | null;
+  instructions: string[] | null;
+  owner: string;
+  imageFileNames: string[] | null;
+  imageLinks: string[];
+  hasLoadedImages: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Component props definition
+defineProps<{
+  recipe: ExtendedRecipe;
+}>();
+
+/**
+ * Generates an array representing difficulty dots
+ * @param difficulty - The difficulty level of the recipe
+ * @returns Array of numbers representing dots to display
+ */
+function getDifficultyDots(difficulty: string): number[] {
+  const difficultyMap = {
+    'Easy': [1, 0, 0],
+    'Medium': [2, 2, 0],
+    'Hard': [3, 3, 3]
+  };
+  return difficultyMap[difficulty as keyof typeof difficultyMap] || [0, 0, 0];
+}
+
+/**
+ * Returns the appropriate CSS class for difficulty dots
+ * @param dot - The dot value to determine color
+ * @returns CSS class string for the dot
+ */
+function dotClass(dot: number): string {
+  const dotColors = {
+    1: 'bg-green-500',  // Easy
+    2: 'bg-orange-400', // Medium
+    3: 'bg-red-600'     // Hard
+  };
+  return dotColors[dot as keyof typeof dotColors] || 'bg-gray-300';
+}
+
+/**
+ * Navigates to the detailed recipe page
+ * @param id - Recipe ID to navigate to
+ */
+function goToRecipe(id: string): void {
+  router.push(`/recipe/${id}`);
+}
+</script>
+
 <template>
   <!-- Recipe Card Container -->
   <li @click="goToRecipe(recipe.id)"
@@ -86,88 +155,8 @@
   </li>
 </template>
 
-<script setup lang="ts">
-/**
- * Recipe Card Component
- *
- * A component that displays a recipe preview card with image, title,
- * description, and metadata. Supports responsive design and hover interactions.
- */
-
-import { useRouter } from 'vue-router';
-
-const router = useRouter();
-
-/**
- * Interface representing a recipe with all its properties
- */
-interface ExtendedRecipe {
-  id: string;
-  createdBy: string;
-  name: string;
-  description: string;
-  course: string;
-  time: string;
-  numServings: string;
-  difficulty: string;
-  ingredients: string;
-  instructions: string;
-  owner: string;
-  imageFileNames: string[];
-  imageLinks: string[];
-  hasLoadedImages: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// Component props definition
-defineProps<{
-  recipe: ExtendedRecipe;
-}>();
-
-/**
- * Generates an array representing difficulty dots
- * @param difficulty - The difficulty level of the recipe
- * @returns Array of numbers representing dots to display
- */
-function getDifficultyDots(difficulty: string): number[] {
-  const difficultyMap = {
-    'Easy': [1, 0, 0],
-    'Medium': [2, 2, 0],
-    'Hard': [3, 3, 3]
-  };
-  return difficultyMap[difficulty as keyof typeof difficultyMap] || [0, 0, 0];
-}
-
-/**
- * Returns the appropriate CSS class for difficulty dots
- * @param dot - The dot value to determine color
- * @returns CSS class string for the dot
- */
-function dotClass(dot: number): string {
-  const dotColors = {
-    1: 'bg-green-500',  // Easy
-    2: 'bg-orange-400', // Medium
-    3: 'bg-red-600'     // Hard
-  };
-  return dotColors[dot as keyof typeof dotColors] || 'bg-gray-300';
-}
-
-/**
- * Navigates to the detailed recipe page
- * @param id - Recipe ID to navigate to
- */
-function goToRecipe(id: string): void {
-  router.push(`/recipe/${id}`);
-}
-</script>
-
 <style scoped>
-/**
- * Custom color variables and animations
- */
-
-/* Gold theme color */
+/* Custom color variables */
 .text-gold {
   color: #bca067;
 }
