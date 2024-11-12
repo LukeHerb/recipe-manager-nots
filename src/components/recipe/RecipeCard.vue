@@ -143,7 +143,7 @@ function goToRecipe(id: string): void {
         <!-- Serving Size -->
         <div class="flex items-center gap-2">
           <i class="fa-solid fa-utensils text-gold"></i>
-          <span class="text-sm">{{ recipe.numServings }} servings</span>
+          <span class="text-sm">{{ recipe.numServings }}</span>
         </div>
       </div>
 
