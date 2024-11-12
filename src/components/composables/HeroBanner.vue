@@ -79,7 +79,6 @@ import { ref, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { generateClient } from 'aws-amplify/data'
 import type { Schema } from '../../../amplify/data/resource'
-import backgroundImg from '../../assets/hero-image.jpeg'
 
 // Initialize router and API client
 const router = useRouter()
