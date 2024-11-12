@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@aws-amplify/cli": "^12.13.0",
     "@aws-amplify/ui-vue": "^4.2.22",
     "@fortawesome/fontawesome-free": "^6.6.0",
     "@fortawesome/fontawesome-svg-core": "^6.6.0",
@@ -17,7 +18,7 @@
     "@fortawesome/free-solid-svg-icons": "^6.6.0",
     "@fortawesome/vue-fontawesome": "^3.0.8",
     "@primevue/themes": "^4.2.1",
-    "aws-amplify": "^6.4.0",
+    "aws-amplify": "^6.8.0",
     "primeicons": "^7.0.0",
     "primevue": "^4.2.1",
     "uuid": "^11.0.2",
