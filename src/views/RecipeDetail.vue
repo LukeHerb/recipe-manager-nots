@@ -169,6 +169,8 @@ interface Recipe {
   createdAt: string
   updatedAt: string
   reviews?: Review[]
+  averageRating?: number
+  numReviews?: number
 }
 
 interface CurrentUser {
@@ -250,6 +252,8 @@ async function fetchRecipe() {
         createdAt: response.data.createdAt,
         updatedAt: response.data.updatedAt,
         reviews: [],
+        averageRating: response.data.averageRating || 0,
+        numReviews: response.data.numReviews || 0,
       }
 
       // Fetch reviews if they exist

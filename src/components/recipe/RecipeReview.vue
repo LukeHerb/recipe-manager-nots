@@ -1,28 +1,31 @@
 <template>
   <div class="flex flex-col gap-4 w-full">
     <!-- Review Input Section -->
-    <div class="flex flex-col gap-2" v-if="recipe.data.owner !== currentUser.username">
+    <div
+      class="flex flex-col gap-2"
+      v-if="recipe.data.owner !== currentUser.username"
+    >
       <div class="rating-container">
         <span
-            v-for="star in 5"
-            :key="star"
-            @click="setRating(star)"
-            @mouseover="hoverRating = star"
-            @mouseleave="hoverRating = 0"
-            class="star cursor-pointer"
+          v-for="star in 5"
+          :key="star"
+          @click="setRating(star)"
+          @mouseover="hoverRating = star"
+          @mouseleave="hoverRating = 0"
+          class="star cursor-pointer"
         >
           <i
-              :class="[
+            :class="[
               star <= (hoverRating || reviewRating) ? 'fa-solid' : 'fa-regular',
-              'fa-star fa-xl star-icon'
+              'fa-star fa-xl star-icon',
             ]"
           ></i>
         </span>
       </div>
       <Textarea
-          v-model="reviewComment"
-          placeholder="Enter Your Review"
-          class="w-full font-montserrat"
+        v-model="reviewComment"
+        placeholder="Enter Your Review"
+        class="w-full font-montserrat"
       />
       <Button severity="success" @click="addReview" class="review-button">
         Leave Your Review
@@ -31,13 +34,19 @@
 
     <!-- Reviews List -->
     <li v-for="review in recipe.reviews" :key="review.id" class="review-card">
-      <div class="recipe-details flex justify-between items-end h-full mt-auto w-full">
+      <div
+        class="recipe-details flex justify-between items-end h-full mt-auto w-full"
+      >
         <div class="flex flex-col h-full gap-12 w-full">
           <div class="flex flex-col gap-4">
             <div class="flex w-full items-center justify-between">
               <p class="text-base font-montserrat">{{ review.createdBy }}</p>
               <div class="flex gap-2">
-                <span v-for="star in getStars(review.reviewStars)" :key="star" class="star">
+                <span
+                  v-for="star in getStars(review.reviewStars)"
+                  :key="star"
+                  class="star"
+                >
                   <i class="fa-solid fa-star"></i>
                 </span>
               </div>
@@ -47,9 +56,9 @@
                 {{ review.reviewText }}
               </p>
               <i
-                  v-if="currentUser.username === review.owner"
-                  class="fa-regular fa-trash-can text-red-500 text-xl cursor-pointer"
-                  @click="showDeleteConfirmation(review)"
+                v-if="currentUser.username === review.owner"
+                class="fa-regular fa-trash-can text-red-500 text-xl cursor-pointer"
+                @click="showDeleteConfirmation(review)"
               ></i>
             </div>
           </div>
@@ -59,30 +68,37 @@
 
     <!-- Delete Confirmation Dialog -->
     <Dialog
-        v-model:visible="showDeleteDialog"
-        modal
-        header="Delete Review"
-        :style="{ width: '500px' }"
-        :closable="false"
+      v-model:visible="showDeleteDialog"
+      modal
+      header="Delete Review"
+      :style="{ width: '500px' }"
+      :closable="false"
     >
       <div class="confirmation-content p-4">
         <div class="flex items-start mb-4">
-          <i class="fa-solid fa-triangle-exclamation text-2xl text-yellow-500 mr-3 mt-1"></i>
+          <i
+            class="fa-solid fa-triangle-exclamation text-2xl text-yellow-500 mr-3 mt-1"
+          ></i>
           <div class="flex flex-col gap-2">
-            <span class="font-semibold text-lg">This action cannot be undone</span>
+            <span class="font-semibold text-lg"
+              >This action cannot be undone</span
+            >
             <p class="text-gray-600">
-              This will permanently delete your review. Are you sure you want to proceed?
+              This will permanently delete your review. Are you sure you want to
+              proceed?
             </p>
           </div>
         </div>
         <div class="mt-6">
           <label class="block text-sm font-medium text-gray-700 mb-2">
-            Please type <span class="font-mono bg-gray-100 px-2 py-1 rounded">delete</span> to confirm
+            Please type
+            <span class="font-mono bg-gray-100 px-2 py-1 rounded">delete</span>
+            to confirm
           </label>
           <InputText
-              v-model="deleteConfirmation"
-              class="w-full"
-              :class="{ 'p-invalid': showDeleteError }"
+            v-model="deleteConfirmation"
+            class="w-full"
+            :class="{ 'p-invalid': showDeleteError }"
           />
           <small v-if="showDeleteError" class="p-error block mt-1">
             Please type 'delete' to confirm
@@ -92,19 +108,19 @@
       <template #footer>
         <div class="flex justify-end gap-3">
           <Button
-              label="Cancel"
-              icon="fa-solid fa-times"
-              @click="cancelDelete"
-              class="p-button-outlined"
-              :disabled="deleting"
+            label="Cancel"
+            icon="fa-solid fa-times"
+            @click="cancelDelete"
+            class="p-button-outlined"
+            :disabled="deleting"
           />
           <Button
-              label="Delete Review"
-              icon="fa-solid fa-trash"
-              @click="confirmDelete"
-              class="p-button-danger"
-              :loading="deleting"
-              :disabled="deleteConfirmation !== 'delete'"
+            label="Delete Review"
+            icon="fa-solid fa-trash"
+            @click="confirmDelete"
+            class="p-button-danger"
+            :loading="deleting"
+            :disabled="deleteConfirmation !== 'delete'"
           />
         </div>
       </template>
@@ -158,6 +174,8 @@ interface RecipeData {
   hasLoadedImages: boolean
   createdAt: string
   updatedAt: string
+  averageRating: number
+  reviewCount: number
 }
 
 interface RecipeWithReviews {
@@ -212,7 +230,7 @@ async function addReview(): Promise<void> {
       severity: 'warn',
       summary: 'Validation Error',
       detail: 'Please enter a comment and select a rating.',
-      life: 3000
+      life: 3000,
     })
     return
   }
@@ -239,16 +257,31 @@ async function addReview(): Promise<void> {
         severity: 'success',
         summary: 'Success',
         detail: 'Review added successfully',
-        life: 3000
+        life: 3000,
       })
     }
+
+    const totalReviews = props.recipe.reviews?.length
+    const totalRating = props.recipe.reviews?.reduce(
+      (acc: number, review: ReviewData) => acc + review.reviewStars,
+      0
+    )
+
+    console.log(props.recipe.reviews?.length)
+    const newAverageRating = totalRating / totalReviews
+
+    await client.models.Recipe.update({
+      id: props.recipe.data.id,
+      averageRating: newAverageRating,
+      numReviews: totalReviews,
+    })
   } catch (error) {
     console.error('Error creating review:', error)
     toast.add({
       severity: 'error',
       summary: 'Error',
       detail: 'Failed to create review. Please try again.',
-      life: 3000
+      life: 3000,
     })
   }
 }
@@ -280,14 +313,14 @@ async function confirmDelete() {
   try {
     await client.models.Review.delete({ id: selectedReview.value.id })
     props.recipe.reviews = props.recipe.reviews?.filter(
-        (review: ReviewData) => review.id !== selectedReview.value?.id
+      (review: ReviewData) => review.id !== selectedReview.value?.id
     )
 
     toast.add({
       severity: 'success',
       summary: 'Success',
       detail: 'Review deleted successfully',
-      life: 3000
+      life: 3000,
     })
   } catch (error) {
     console.error('Error deleting review:', error)
@@ -295,7 +328,7 @@ async function confirmDelete() {
       severity: 'error',
       summary: 'Error',
       detail: 'Failed to delete review. Please try again.',
-      life: 3000
+      life: 3000,
     })
   } finally {
     deleting.value = false
@@ -385,7 +418,8 @@ async function confirmDelete() {
 
 :deep(.p-dialog) {
   border-radius: 1rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   max-width: 90vw;
 }
 
