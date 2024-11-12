@@ -1,7 +1,9 @@
 <template>
   <div class="wrapper">
     <Toast />
-    <main class="flex flex-col m-auto justify-center content-center items-center p-8">
+    <main
+      class="flex flex-col m-auto justify-center content-center items-center p-8"
+    >
       <!-- Loading State -->
       <div v-if="loading" class="w-full max-w-4xl">
         <div class="animate-pulse space-y-8">
@@ -15,167 +17,18 @@
 
       <!-- Recipe Edit Form -->
       <div v-else class="grid gap-6 grid-cols-1 w-6/12">
-        <div class="flex flex-col gap-4">
-          <div class="flex flex-col gap-6 bg-white p-8 pb-2 rounded-xl">
-            <!-- Image Upload Section -->
-            <div class="flex flex-col gap-4">
-              <div class="relative h-[300px] w-full rounded-xl overflow-hidden">
-                <!-- Current Image Display -->
-                <img
-                    v-if="recipe.imageLinks && recipe.imageLinks[0]"
-                    :src="recipe.imageLinks[0]"
-                    :alt="recipe.name"
-                    class="w-full h-full object-cover"
-                />
-                <!-- Image Upload Input -->
-                <div class="absolute bottom-4 right-4">
-                  <input
-                      type="file"
-                      @change="handleFileUpload"
-                      class="hidden"
-                      id="imageUpload"
-                      accept="image/*"
-                  />
-                  <label
-                      for="imageUpload"
-                      class="bg-white p-2 rounded-full shadow-lg cursor-pointer hover:bg-gray-50 transition-colors"
-                  >
-                    <i class="fa-solid fa-camera text-[#bca067] text-xl"></i>
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <!-- Recipe Name -->
-            <FloatLabel variant="on" class="w-full">
-              <InputText
-                  v-model="recipe.name"
-                  autocomplete="off"
-                  class="w-full"
-              />
-              <label>Recipe Name</label>
-            </FloatLabel>
-
-            <!-- Course and Difficulty Selection -->
-            <div class="card flex justify-between gap-4">
-              <FloatLabel variant="on" class="w-full">
-                <Select
-                    v-model="recipe.course"
-                    :options="courses"
-                    class="w-full"
-                />
-                <label>Course</label>
-              </FloatLabel>
-              <FloatLabel variant="on" class="w-full">
-                <Select
-                    v-model="recipe.difficulty"
-                    :options="difficulties"
-                    class="w-full"
-                />
-                <label>Difficulty</label>
-              </FloatLabel>
-            </div>
-
-            <!-- Time and Servings Selection -->
-            <div class="card flex justify-center gap-4">
-              <FloatLabel variant="on" class="w-full">
-                <Select
-                    v-model="recipe.time"
-                    :options="times"
-                    class="w-full"
-                />
-                <label>Cooking Time</label>
-              </FloatLabel>
-              <FloatLabel variant="on" class="w-full">
-                <Select
-                    v-model="recipe.numServings"
-                    :options="servings"
-                    class="w-full"
-                />
-                <label>Number of Servings</label>
-              </FloatLabel>
-            </div>
-
-            <!-- Recipe Description -->
-            <FloatLabel variant="on">
-              <Textarea
-                  v-model="recipe.description"
-                  rows="5"
-                  class="w-full"
-              />
-              <label>Description</label>
-            </FloatLabel>
-
-            <!-- Ingredients and Instructions Section -->
-            <div class="flex w-full">
-              <!-- Ingredients Column -->
-              <div class="flex flex-col gap-6 w-6/12 bg-white border-dashed border-r-2 pr-4 border-slate-400">
-                <div class="flex flex-col gap-4">
-                  <div class="flex gap-3">
-                    <FloatLabel variant="on" class="w-full">
-                      <InputText
-                          v-model="inputIngredient"
-                          autocomplete="off"
-                          class="w-full"
-                          @keydown.enter="addIngredient"
-                      />
-                      <label>Add Ingredient</label>
-                    </FloatLabel>
-                  </div>
-                </div>
-                <ul class="list-small-disc list-inside">
-                  <li
-                      v-for="(ingredient, index) in recipe.ingredients"
-                      :key="ingredient"
-                  >
-                    <span
-                        class="text-base leading-7 pl-5 tracking-wider font-light hover:line-through cursor-pointer"
-                        @click="removeIngredient(index)"
-                    >{{ ingredient }}</span>
-                  </li>
-                </ul>
-              </div>
-
-              <!-- Instructions Column -->
-              <div class="flex flex-col gap-6 pl-4 w-6/12 bg-white rounded-xl">
-                <FloatLabel variant="on" class="w-full">
-                  <InputText
-                      v-model="inputInstruction"
-                      class="w-full"
-                      @keydown.enter="addInstruction"
-                  />
-                  <label>{{ `Step ${currIndex}` }}</label>
-                </FloatLabel>
-                <ol class="list-decimal list-inside">
-                  <li
-                      v-for="(instruction, index) in recipe.instructions"
-                      :key="instruction"
-                  >
-                    <span
-                        class="text-base leading-7 pl-5 tracking-wider font-light hover:line-through cursor-pointer"
-                        @click="removeInstruction(index)"
-                    >{{ instruction }}</span>
-                  </li>
-                </ol>
-              </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="flex justify-end gap-4 mt-4">
-              <Button
-                  label="Cancel"
-                  class="p-button-outlined"
-                  @click="cancelEdit"
-              />
-              <Button
-                  label="Save Changes"
-                  class="p-button-primary"
-                  :loading="saving"
-                  @click="saveRecipe"
-              />
-            </div>
-          </div>
-        </div>
+        <RecipeForm
+          v-if="!loading"
+          :initialRecipe="recipe"
+          :isEditMode="true"
+          :courses="courses"
+          :difficulties="difficulties"
+          :times="times"
+          :servings="servings"
+          @save="saveRecipe"
+          @cancel="cancelEdit"
+          :recipeID="recipe.id"
+        />
       </div>
     </main>
   </div>
@@ -195,6 +48,7 @@ import { generateClient } from 'aws-amplify/data'
 import { getCurrentUser } from 'aws-amplify/auth'
 import { uploadData, getUrl } from 'aws-amplify/storage'
 import type { Schema } from '../../amplify/data/resource'
+import RecipeForm from '../components/recipe/RecipeForm.vue'
 
 // Initialize route, router, and utilities
 const route = useRoute()
@@ -209,6 +63,7 @@ const currentUser = ref()
 const inputIngredient = ref('')
 const inputInstruction = ref('')
 const currIndex = ref(1)
+const isEditMode = ref(route.params.id !== undefined)
 
 // Recipe interface
 interface Recipe {
@@ -247,27 +102,47 @@ const recipe = ref<Recipe>({
   createdBy: '',
   owner: '',
   createdAt: '',
-  updatedAt: ''
+  updatedAt: '',
 })
 
 // Form options
 const times = [
-  '15 minutes', '30 minutes', '45 minutes',
-  '1 hour', '1 hour 30 minutes', '2 hours',
-  '2 hours 30 minutes', '3 hours', '4 hours',
-  '5 hours', '6 hours', '7 hours', '8 hours'
+  '15 minutes',
+  '30 minutes',
+  '45 minutes',
+  '1 hour',
+  '1 hour 30 minutes',
+  '2 hours',
+  '2 hours 30 minutes',
+  '3 hours',
+  '4 hours',
+  '5 hours',
+  '6 hours',
+  '7 hours',
+  '8 hours',
 ]
 
 const servings = [
-  '1 serving', '2 servings', '3 servings',
-  '4 servings', '5 servings', '6 servings',
-  '7 servings', '8 servings', '9 servings',
-  '10 servings', '10+ servings'
+  '1 serving',
+  '2 servings',
+  '3 servings',
+  '4 servings',
+  '5 servings',
+  '6 servings',
+  '7 servings',
+  '8 servings',
+  '9 servings',
+  '10 servings',
+  '10+ servings',
 ]
 
 const courses = [
-  'Appetizer', 'Entree', 'Dessert',
-  'Side Dish', 'Drink', 'Other'
+  'Appetizer',
+  'Entree',
+  'Dessert',
+  'Side Dish',
+  'Drink',
+  'Other',
 ]
 
 const difficulties = ['Easy', 'Medium', 'Hard']
@@ -282,8 +157,8 @@ async function loadImages(recipeData: Recipe) {
             path: `recipe-manager/images/${recipeData.id}/${fileName}`,
             options: {
               bucket: 'recipe-manager-bucket',
-              expiresIn: 3600
-            }
+              expiresIn: 3600,
+            },
           })
           return getLink.url.toString()
         } catch (error) {
@@ -292,7 +167,9 @@ async function loadImages(recipeData: Recipe) {
         }
       })
       const resolvedLinks = await Promise.all(imagePromises)
-      recipeData.imageLinks = resolvedLinks.filter((link): link is string => link !== null)
+      recipeData.imageLinks = resolvedLinks.filter(
+        (link): link is string => link !== null
+      )
       recipeData.hasLoadedImages = recipeData.imageLinks.length > 0
     } catch (error) {
       console.error('Error processing images:', error)
@@ -326,7 +203,7 @@ async function handleFileUpload(event: Event) {
         severity: 'success',
         summary: 'Success',
         detail: 'Image uploaded successfully',
-        life: 3000
+        life: 3000,
       })
     } catch (error) {
       console.error('Upload failed:', error)
@@ -334,41 +211,18 @@ async function handleFileUpload(event: Event) {
         severity: 'error',
         summary: 'Error',
         detail: 'Failed to upload image',
-        life: 3000
+        life: 3000,
       })
     }
   }
 }
 
-// Ingredients and Instructions management
-function addIngredient() {
-  if (inputIngredient.value.trim()) {
-    recipe.value.ingredients.push(inputIngredient.value.trim())
-    inputIngredient.value = ''
-  }
-}
-
-function removeIngredient(index: number) {
-  recipe.value.ingredients.splice(index, 1)
-}
-
-function addInstruction() {
-  if (inputInstruction.value.trim()) {
-    recipe.value.instructions.push(inputInstruction.value.trim())
-    inputInstruction.value = ''
-    currIndex.value++
-  }
-}
-
-function removeInstruction(index: number) {
-  recipe.value.instructions.splice(index, 1)
-  currIndex.value--
-}
-
 // Recipe management functions
 async function fetchRecipe() {
   try {
-    const response = await client.models.Recipe.get({ id: route.params.id as string })
+    const response = await client.models.Recipe.get({
+      id: route.params.id as string,
+    })
     if (response.data) {
       recipe.value = response.data as Recipe
       await loadImages(recipe.value)
@@ -380,7 +234,7 @@ async function fetchRecipe() {
       severity: 'error',
       summary: 'Error',
       detail: 'Failed to load recipe',
-      life: 3000
+      life: 3000,
     })
     router.push('/')
   } finally {
@@ -388,33 +242,77 @@ async function fetchRecipe() {
   }
 }
 
-async function saveRecipe() {
+// async function saveRecipe() {
+//   if (!validateRecipe()) {
+//     return
+//   }
+
+//   saving.value = true
+//   try {
+//     await client.models.Recipe.update({
+//       id: recipe.value.id,
+//       name: recipe.value.name,
+//       description: recipe.value.description,
+//       time: recipe.value.time,
+//       course: recipe.value.course,
+//       numServings: recipe.value.numServings,
+//       difficulty: recipe.value.difficulty,
+//       ingredients: recipe.value.ingredients,
+//       instructions: recipe.value.instructions,
+//       imageFileNames: recipe.value.imageFileNames,
+//       owner: recipe.value.owner,
+//       createdBy: recipe.value.createdBy,
+//     })
+
+//     toast.add({
+//       severity: 'success',
+//       summary: 'Success',
+//       detail: 'Recipe updated successfully',
+//       life: 3000,
+//     })
+//     router.push(`/recipe/${recipe.value.id}`)
+//   } catch (error) {
+//     console.error('Error updating recipe:', error)
+//     toast.add({
+//       severity: 'error',
+//       summary: 'Error',
+//       detail: 'Failed to update recipe',
+//       life: 3000,
+//     })
+//   } finally {
+//     saving.value = false
+//   }
+// }
+
+async function saveRecipe(newRecipe: Recipe) {
   if (!validateRecipe()) {
     return
   }
 
+  console.log('Saving recipe:', newRecipe)
+
   saving.value = true
   try {
     await client.models.Recipe.update({
-      id: recipe.value.id,
-      name: recipe.value.name,
-      description: recipe.value.description,
-      time: recipe.value.time,
-      course: recipe.value.course,
-      numServings: recipe.value.numServings,
-      difficulty: recipe.value.difficulty,
-      ingredients: recipe.value.ingredients,
-      instructions: recipe.value.instructions,
-      imageFileNames: recipe.value.imageFileNames,
-      owner: recipe.value.owner,
-      createdBy: recipe.value.createdBy
+      id: newRecipe.id,
+      name: newRecipe.name,
+      description: newRecipe.description,
+      time: newRecipe.time,
+      course: newRecipe.course,
+      numServings: newRecipe.numServings,
+      difficulty: newRecipe.difficulty,
+      ingredients: newRecipe.ingredients,
+      instructions: newRecipe.instructions,
+      imageFileNames: newRecipe.imageFileNames,
+      owner: newRecipe.owner,
+      createdBy: newRecipe.createdBy,
     })
 
     toast.add({
       severity: 'success',
       summary: 'Success',
       detail: 'Recipe updated successfully',
-      life: 3000
+      life: 3000,
     })
     router.push(`/recipe/${recipe.value.id}`)
   } catch (error) {
@@ -423,7 +321,7 @@ async function saveRecipe() {
       severity: 'error',
       summary: 'Error',
       detail: 'Failed to update recipe',
-      life: 3000
+      life: 3000,
     })
   } finally {
     saving.value = false
@@ -436,7 +334,7 @@ function validateRecipe(): boolean {
       severity: 'warn',
       summary: 'Missing Information',
       detail: 'Please enter a recipe name',
-      life: 3000
+      life: 3000,
     })
     return false
   }
@@ -446,7 +344,7 @@ function validateRecipe(): boolean {
       severity: 'warn',
       summary: 'Missing Information',
       detail: 'Please add at least one ingredient',
-      life: 3000
+      life: 3000,
     })
     return false
   }
@@ -456,7 +354,7 @@ function validateRecipe(): boolean {
       severity: 'warn',
       summary: 'Missing Information',
       detail: 'Please add at least one instruction',
-      life: 3000
+      life: 3000,
     })
     return false
   }
@@ -493,7 +391,8 @@ onMounted(async () => {
 
 /* Loading animation */
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -595,7 +494,7 @@ onMounted(async () => {
 }
 
 /* Image upload styling */
-input[type="file"] {
+input[type='file'] {
   opacity: 0;
   position: absolute;
   z-index: -1;

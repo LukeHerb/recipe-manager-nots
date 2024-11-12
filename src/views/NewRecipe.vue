@@ -4,129 +4,17 @@
       class="flex flex-col m-auto justify-center content-center items-center p-8"
     >
       <div class="grid gap-6 grid-cols-1 w-6/12">
-        <div class="flex flex-col gap-4">
-          <div class="flex flex-col gap-6 bg-white p-8 pb-2 rounded-xl">
-            <div><input type="file" @change="handleFileUpload" /></div>
-            <div>
-              <div v-if="link">
-                <img :src="link" alt="recipe image" />
-              </div>
-            </div>
-            <FloatLabel variant="on" class="w-full">
-              <InputText
-                id="on_label"
-                v-model="recipe.name"
-                autocomplete="off"
-                class="w-full"
-              />
-              <label for="on_label">Recipe Name</label>
-            </FloatLabel>
-            <div class="card flex justify-between gap-4">
-              <FloatLabel variant="on" class="w-full">
-                <Select
-                  v-model="recipe.course"
-                  :options="courses"
-                  class="w-full"
-                />
-                <label for="on_label">Course</label>
-              </FloatLabel>
-              <FloatLabel variant="on" class="w-full">
-                <Select
-                  v-model="recipe.difficulty"
-                  :options="difficulties"
-                  class="w-full"
-                />
-                <label for="on_label">Difficulty</label>
-              </FloatLabel>
-            </div>
-            <div class="card flex justify-center gap-4">
-              <FloatLabel variant="on" class="w-full">
-                <Select v-model="recipe.time" :options="times" class="w-full" />
-                <label for="on_label">Cooking Time</label>
-              </FloatLabel>
-              <FloatLabel variant="on" class="w-full">
-                <Select
-                  v-model="recipe.numServings"
-                  :options="servings"
-                  class="w-full"
-                />
-                <label for="on_label">Number of Servings</label>
-              </FloatLabel>
-            </div>
-            <FloatLabel variant="on">
-              <Textarea
-                id="over_label"
-                v-model="recipe.description"
-                rows="5"
-                class="w-full"
-              />
-              <label for="on_label">Description</label>
-            </FloatLabel>
-            <div class="flex w-full">
-              <div
-                class="flex flex-col gap-6 w-6/12 bg-white border-dashed border-r-2 pr-4 border-slate-400"
-              >
-                <div class="flex flex-col gap-4">
-                  <div class="flex gap-3">
-                    <FloatLabel variant="on" class="w-full">
-                      <InputText
-                        id="on_label"
-                        v-model="inputIngredient"
-                        autocomplete="off"
-                        class="w-full"
-                        v-on:submit="addIngredient"
-                        @keydown.enter="addIngredient"
-                      />
-                      <label for="on_label">Ingredient</label>
-                    </FloatLabel>
-                  </div>
-                </div>
-                <ul class="list-small-disc list-inside">
-                  <li
-                    v-for="(ingredient, index) in recipe.ingredients"
-                    :key="ingredient"
-                  >
-                    <span
-                      class="text-base leading-7 pl-5 tracking-wider font-light hover:line-through cursor-pointer"
-                      @click="removeIngredient(index)"
-                      >{{ ingredient }}</span
-                    >
-                  </li>
-                </ul>
-              </div>
-              <div class="flex flex-col gap-6 pl-4 w-6/12 bg-white rounded-xl">
-                <FloatLabel variant="on" class="w-full">
-                  <InputText
-                    id="on_label"
-                    v-model="inputInstruction"
-                    rows="5"
-                    class="w-full"
-                    v-on:submit="addInstruction"
-                    @keydown.enter="addInstruction"
-                  />
-                  <label for="on_label">{{ `Step ${currIndex}` }}</label>
-                </FloatLabel>
-                <ol class="list-decimal list-inside">
-                  <li
-                    v-for="(instruction, index) in recipe.instructions"
-                    :key="instruction"
-                  >
-                    <span
-                      class="text-base leading-7 pl-5 tracking-wider font-light hover:line-through cursor-pointer"
-                      @click="removeInstruction(index)"
-                      >{{ instruction }}</span
-                    >
-                  </li>
-                </ol>
-              </div>
-            </div>
-            <Button
-              label="Submit"
-              class="p-button-primary mt-4"
-              @click="addRecipe"
-            />
-          </div>
-        </div>
+        <RecipeForm
+          :initialRecipe="recipe"
+          :isEditMode="false"
+          :courses="courses"
+          :difficulties="difficulties"
+          :times="times"
+          :servings="servings"
+          @save="handleSave"
+          @cancel="handleCancel"
+          :recipeID="recipe.id"
+        />
       </div>
     </main>
   </div>
@@ -145,6 +33,10 @@ import { type Schema } from '../../amplify/data/resource'
 import { getCurrentUser } from 'aws-amplify/auth'
 import { uploadData, list, getUrl } from 'aws-amplify/storage'
 import { v4 as uuidv4 } from 'uuid'
+import { useRouter } from 'vue-router'
+import RecipeForm from '../components/recipe/RecipeForm.vue'
+
+const router = useRouter()
 
 const currentUser = ref()
 
@@ -167,7 +59,7 @@ const recipe = ref<{
   instructions: string[]
   imageFileNames: string[]
 }>({
-  id: '',
+  id: uuidv4(),
   name: '',
   course: '',
   time: '',
@@ -298,8 +190,28 @@ const addRecipe = async () => {
     owner: currentUser.value.username,
     imageFileNames: recipe.value.imageFileNames,
   }).then(() => {
-    console.log('Recipe created successfully')
+    router.push('/')
   })
+}
+const handleSave = async (newRecipe) => {
+  try {
+    // Create the new recipe using client
+    await client.models.Recipe.create({
+      ...newRecipe,
+      id: recipe.value.id,
+      createdBy: currentUser.value.signInDetails.loginId,
+      owner: currentUser.value.username,
+    })
+
+    // Redirect to the home page upon success
+    router.push('/')
+  } catch (error) {
+    console.error('Failed to create recipe:', error)
+  }
+}
+
+const handleCancel = () => {
+  router.push('/')
 }
 
 const handleFileUpload = async (event: Event) => {

@@ -1,5 +1,7 @@
 <template>
-  <main class="flex flex-col m-auto justify-center content-center items-center p-8 md:py-12">
+  <main
+    class="flex flex-col m-auto justify-center content-center items-center p-8 md:py-12"
+  >
     <Toast />
     <!-- Loading State -->
     <div v-if="loading" class="w-full max-w-4xl">
@@ -21,26 +23,32 @@
     <!-- Recipe Content -->
     <div v-else class="w-full max-w-4xl">
       <!-- Recipe Card -->
-      <div class="bg-white rounded-xl shadow-lg overflow-hidden border-2 border-[#bca067]/20">
+      <div
+        class="bg-white rounded-xl shadow-lg overflow-hidden border-2 border-[#bca067]/20"
+      >
         <!-- Image Section with Options Menu -->
         <div class="relative h-[500px] w-full">
           <!-- Loading State for Image -->
-          <div v-if="!recipe.hasLoadedImages" class="w-full h-full bg-gray-200 animate-pulse"></div>
+          <div
+            v-if="!recipe.hasLoadedImages"
+            class="w-full h-full bg-gray-200 animate-pulse"
+          ></div>
 
           <!-- Recipe Image -->
           <img
-              v-else-if="recipe.imageLinks && recipe.imageLinks[0]"
-              :src="recipe.imageLinks[0]"
-              :alt="recipe.name"
-              class="w-full h-full object-cover"
+            v-else-if="recipe.imageLinks && recipe.imageLinks[0]"
+            :src="recipe.imageLinks[0]"
+            :alt="recipe.name"
+            class="w-full h-full object-cover"
           />
 
           <!-- Edit Button Component -->
           <EditButton
-              v-if="isCreator"
-              :recipe-id="recipe.id"
-              :recipe-name="recipe.name"
-              @deleted="handleRecipeDeleted"
+            v-if="isCreator"
+            :recipe-id="recipe.id"
+            :recipe-name="recipe.name"
+            @deleted="handleRecipeDeleted"
+            :images="recipe.imageFileNames"
           />
         </div>
 
@@ -81,7 +89,11 @@
           <div class="mb-8">
             <h2 class="text-2xl font-playfair mb-4">Ingredients</h2>
             <ul class="list-disc list-inside space-y-2">
-              <li v-for="ingredient in recipe.ingredients" :key="ingredient" class="text-gray-700">
+              <li
+                v-for="ingredient in recipe.ingredients"
+                :key="ingredient"
+                class="text-gray-700"
+              >
                 {{ ingredient }}
               </li>
             </ul>
@@ -92,9 +104,9 @@
             <h2 class="text-2xl font-playfair mb-4">Instructions</h2>
             <ol class="list-decimal list-inside space-y-4">
               <li
-                  v-for="(instruction, index) in recipe.instructions"
-                  :key="index"
-                  class="text-gray-700 pl-2"
+                v-for="(instruction, index) in recipe.instructions"
+                :key="index"
+                class="text-gray-700 pl-2"
               >
                 {{ instruction }}
               </li>
@@ -106,8 +118,8 @@
       <!-- Reviews Section -->
       <div v-if="!isCreator" class="mt-8">
         <RecipeReview
-            :recipe="{ data: recipe, reviews: recipe.reviews || [] }"
-            :current-user="currentUser"
+          :recipe="{ data: recipe, reviews: recipe.reviews || [] }"
+          :current-user="currentUser"
         />
       </div>
     </div>
@@ -124,8 +136,8 @@ import type { Schema } from '../../amplify/data/resource'
 import Button from 'primevue/button'
 import Toast from 'primevue/toast'
 import { useToast } from 'primevue/usetoast'
-import RecipeReview from './recipe/RecipeReview.vue'
-import EditButton from './button/EditButton.vue'
+import RecipeReview from '../components/recipe/RecipeReview.vue'
+import EditButton from '../components/button/EditButton.vue'
 
 // Type definitions
 interface Review {
@@ -192,8 +204,8 @@ async function getImages(recipeData: Recipe) {
             path: `recipe-manager/images/${recipeData.id}/${fileName}`,
             options: {
               bucket: 'recipe-manager-bucket',
-              expiresIn: 3600
-            }
+              expiresIn: 3600,
+            },
           })
           return getLink.url.toString()
         } catch (error) {
@@ -202,7 +214,9 @@ async function getImages(recipeData: Recipe) {
         }
       })
       const resolvedLinks = await Promise.all(imagePromises)
-      recipeData.imageLinks = resolvedLinks.filter((link): link is string => link !== null)
+      recipeData.imageLinks = resolvedLinks.filter(
+        (link): link is string => link !== null
+      )
       recipeData.hasLoadedImages = recipeData.imageLinks.length > 0
     } catch (error) {
       console.error('Error processing images:', error)
@@ -215,7 +229,9 @@ async function getImages(recipeData: Recipe) {
 // Fetch recipe data
 async function fetchRecipe() {
   try {
-    const response = await client.models.Recipe.get({ id: route.params.id as string })
+    const response = await client.models.Recipe.get({
+      id: route.params.id as string,
+    })
     if (response.data) {
       // Create a new Recipe object with the response data
       const recipeData: Recipe = {
@@ -233,13 +249,13 @@ async function fetchRecipe() {
         imageFileNames: response.data.imageFileNames,
         createdAt: response.data.createdAt,
         updatedAt: response.data.updatedAt,
-        reviews: []
+        reviews: [],
       }
 
       // Fetch reviews if they exist
       try {
         const reviewsResponse = await client.models.Review.list({
-          filter: { recipeId: { eq: response.data.id } }
+          filter: { recipeId: { eq: response.data.id } },
         })
         if (reviewsResponse.data) {
           recipeData.reviews = reviewsResponse.data as Review[]
@@ -257,7 +273,7 @@ async function fetchRecipe() {
       severity: 'error',
       summary: 'Error',
       detail: 'Failed to load recipe',
-      life: 3000
+      life: 3000,
     })
   } finally {
     loading.value = false
@@ -274,7 +290,7 @@ function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+    day: 'numeric',
   })
 }
 
@@ -285,8 +301,8 @@ onMounted(async () => {
   currentUser.value = {
     username: authUser.username,
     signInDetails: {
-      loginId: authUser.signInDetails.loginId
-    }
+      loginId: authUser.signInDetails.loginId,
+    },
   }
   await fetchRecipe()
 })
@@ -295,7 +311,8 @@ onMounted(async () => {
 <style scoped>
 /* Loading animation */
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
