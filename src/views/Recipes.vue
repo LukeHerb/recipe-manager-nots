@@ -82,6 +82,8 @@ interface ExtendedRecipe {
   hasLoadedImages: boolean
   createdAt: string
   updatedAt: string
+  averageRating: number
+  numReviews: number
 }
 
 // Recipe state
@@ -226,6 +228,8 @@ async function listRecipes() {
         hasLoadedImages: false,
         createdAt: recipe.createdAt ?? '',
         updatedAt: recipe.updatedAt ?? '',
+        averageRating: recipe.averageRating ?? 0,
+        numReviews: recipe.numReviews ?? 0,
       }))
       // Then load images in parallel
       await Promise.all(recipes.value.map((recipe) => getImages(recipe)))

@@ -23,6 +23,8 @@ interface ExtendedRecipe {
   hasLoadedImages: boolean
   createdAt: string
   updatedAt: string
+  averageRating: number
+  numReviews: number
 }
 
 // Component props definition
@@ -148,6 +150,37 @@ function goToRecipe(id: string): void {
         <div class="flex items-center gap-2">
           <i class="fa-solid fa-utensils text-gold"></i>
           <span class="text-sm">{{ recipe.numServings }}</span>
+        </div>
+
+        <!-- reviews -->
+        <!-- reviews -->
+        <div class="flex items-center gap-2">
+          <!-- Generate stars based on average rating -->
+          <div class="flex items-center">
+            <!-- Full stars -->
+            <i
+              v-for="n in Math.floor(recipe.averageRating)"
+              :key="`full-${n}`"
+              class="fa-solid fa-star text-gold"
+            ></i>
+            <!-- Half star -->
+            <i
+              v-if="recipe.averageRating % 1 !== 0"
+              class="fa-solid fa-star-half-stroke text-gold"
+            ></i>
+            <!-- Empty stars -->
+            <i
+              v-for="n in 5 - Math.ceil(recipe.averageRating)"
+              :key="`empty-${n}`"
+              class="fa-solid fa-star text-gray-300"
+            ></i>
+          </div>
+          <!-- Display number of reviews in parentheses -->
+          <span class="text-sm" v-if="recipe.numReviews">{{
+            recipe.numReviews > 1
+              ? `(${recipe.numReviews} Reviews)`
+              : `(${recipe.numReviews} Review)`
+          }}</span>
         </div>
       </div>
 
