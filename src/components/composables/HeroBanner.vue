@@ -1,77 +1,80 @@
 <!-- src/components/composables/HeroBanner.vue -->
 <template>
-  <section class="relative w-full h-[600px] overflow-hidden wrapper">
-    <!-- Background Image Container -->
-    <div class="absolute inset-0">
-      <!-- Gradient Overlay -->
-      <div
-        class="absolute inset-0 bg-gradient-to-r from-black/70 to-black/50"
-        aria-hidden="true"
-      ></div>
-    </div>
+  <div class="wrapper">
+    <section class="relative w-full h-[600px] overflow-hidden">
+      <!-- Background Image Container -->
+      <div class="absolute inset-0">
+        <!-- Gradient Overlay -->
+        <div
+          class="absolute inset-0 bg-gradient-to-r from-black/70 to-black/50"
+          aria-hidden="true"
+        ></div>
+      </div>
 
-    <!-- Content Container -->
-    <div class="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex flex-col justify-center h-full">
-        <!-- Hero Text Content -->
-        <div class="max-w-3xl">
-          <!-- Main Heading -->
-          <h1
-            class="font-playfair text-4xl md:text-5xl lg:text-6xl text-white mb-6 leading-tight"
-          >
-            Discover & Share Your
-            <span class="text-[#bca067]">Culinary Journey</span>
-          </h1>
-
-          <!-- Subheading -->
-          <p
-            class="font-montserrat text-lg md:text-xl text-gray-200 mb-8 leading-relaxed"
-          >
-            Join our community of food enthusiasts. Share your favorite recipes,
-            discover new dishes, and learn from experienced home chefs.
-          </p>
-
-          <!-- Call to Action Buttons -->
-          <div class="flex flex-wrap gap-4">
-            <button
-              @click="$router.push('/addRecipe')"
-              class="bg-[#bca067] hover:bg-[#ab8f56] text-white font-montserrat px-8 py-3 rounded-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
+      <!-- Content Container -->
+      <div class="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col justify-center h-full">
+          <!-- Hero Text Content -->
+          <div class="max-w-3xl">
+            <!-- Main Heading -->
+            <h1
+              class="font-playfair text-4xl md:text-5xl lg:text-6xl text-white mb-6 leading-tight"
             >
-              Share Recipe
-            </button>
-            <button
-              @click="handleBrowseClick"
-              class="border-2 border-[#bca067] text-white hover:bg-[#bca067]/10 font-montserrat px-8 py-3 rounded-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
-            >
-              Browse Recipes
-            </button>
-          </div>
-        </div>
+              Discover & Share Your
+              <span class="text-[#bca067]">Culinary Journey</span>
+            </h1>
 
-        <!-- Recipe Statistics -->
-        <div class="absolute bottom-8 right-8">
-          <div class="flex gap-8">
-            <div
-              v-for="stat in statistics"
-              :key="stat.label"
-              class="text-center"
+            <!-- Subheading -->
+            <p
+              class="font-montserrat text-lg md:text-xl text-gray-200 mb-8 leading-relaxed"
             >
-              <p class="text-[#bca067] font-playfair text-4xl font-bold mb-2">
-                <span ref="counterRefs" class="counter-value">{{
-                  stat.displayValue
-                }}</span>
-              </p>
-              <p
-                class="text-white font-montserrat text-sm uppercase tracking-wider"
+              Join our community of food enthusiasts. Share your favorite
+              recipes, discover new dishes, and learn from experienced home
+              chefs.
+            </p>
+
+            <!-- Call to Action Buttons -->
+            <div class="flex flex-wrap gap-4">
+              <button
+                @click="$router.push('/addRecipe')"
+                class="bg-[#bca067] hover:bg-[#ab8f56] text-white font-montserrat px-8 py-3 rounded-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
               >
-                {{ stat.label }}
-              </p>
+                Share Recipe
+              </button>
+              <button
+                @click="handleBrowseClick"
+                class="border-2 border-[#bca067] text-white hover:bg-[#bca067]/10 font-montserrat px-8 py-3 rounded-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
+              >
+                Browse Recipes
+              </button>
+            </div>
+          </div>
+
+          <!-- Recipe Statistics -->
+          <div class="absolute bottom-8 right-8">
+            <div class="flex gap-8">
+              <div
+                v-for="stat in statistics"
+                :key="stat.label"
+                class="text-center"
+              >
+                <p class="text-[#bca067] font-playfair text-4xl font-bold mb-2">
+                  <span ref="counterRefs" class="counter-value">{{
+                    stat.displayValue
+                  }}</span>
+                </p>
+                <p
+                  class="text-white font-montserrat text-sm uppercase tracking-wider"
+                >
+                  {{ stat.label }}
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -219,7 +222,7 @@ onMounted(() => {
 <style scoped>
 /* Hero Section Styles */
 .wrapper {
-  background: url('../../assets/hero-image.jpeg');
+  background: url('../../assets/create-recipe.jpg');
   background-size: cover;
   background-position: center;
 }
