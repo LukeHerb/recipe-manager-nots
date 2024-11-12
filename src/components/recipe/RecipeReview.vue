@@ -1,5 +1,6 @@
 <template>
   <div class="flex flex-col gap-4 w-full">
+    <!-- Review Input Section -->
     <div class="flex flex-col gap-2" v-if="recipe.data.owner !== currentUser.username">
       <div class="rating-container">
         <span
@@ -27,6 +28,8 @@
         Leave Your Review
       </Button>
     </div>
+
+    <!-- Reviews List -->
     <li v-for="review in recipe.reviews" :key="review.id" class="review-card">
       <div class="recipe-details flex justify-between items-end h-full mt-auto w-full">
         <div class="flex flex-col h-full gap-12 w-full">
@@ -46,13 +49,66 @@
               <i
                   v-if="currentUser.username === review.owner"
                   class="fa-regular fa-trash-can text-red-500 text-xl cursor-pointer"
-                  @click="deleteReview(review.id)"
+                  @click="showDeleteConfirmation(review)"
               ></i>
             </div>
           </div>
         </div>
       </div>
     </li>
+
+    <!-- Delete Confirmation Dialog -->
+    <Dialog
+        v-model:visible="showDeleteDialog"
+        modal
+        header="Delete Review"
+        :style="{ width: '500px' }"
+        :closable="false"
+    >
+      <div class="confirmation-content p-4">
+        <div class="flex items-start mb-4">
+          <i class="fa-solid fa-triangle-exclamation text-2xl text-yellow-500 mr-3 mt-1"></i>
+          <div class="flex flex-col gap-2">
+            <span class="font-semibold text-lg">This action cannot be undone</span>
+            <p class="text-gray-600">
+              This will permanently delete your review. Are you sure you want to proceed?
+            </p>
+          </div>
+        </div>
+        <div class="mt-6">
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Please type <span class="font-mono bg-gray-100 px-2 py-1 rounded">delete</span> to confirm
+          </label>
+          <InputText
+              v-model="deleteConfirmation"
+              class="w-full"
+              :class="{ 'p-invalid': showDeleteError }"
+          />
+          <small v-if="showDeleteError" class="p-error block mt-1">
+            Please type 'delete' to confirm
+          </small>
+        </div>
+      </div>
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <Button
+              label="Cancel"
+              icon="fa-solid fa-times"
+              @click="cancelDelete"
+              class="p-button-outlined"
+              :disabled="deleting"
+          />
+          <Button
+              label="Delete Review"
+              icon="fa-solid fa-trash"
+              @click="confirmDelete"
+              class="p-button-danger"
+              :loading="deleting"
+              :disabled="deleteConfirmation !== 'delete'"
+          />
+        </div>
+      </template>
+    </Dialog>
   </div>
 </template>
 
@@ -60,9 +116,13 @@
 import { ref } from 'vue'
 import Button from 'primevue/button'
 import Textarea from 'primevue/textarea'
+import Dialog from 'primevue/dialog'
+import InputText from 'primevue/inputtext'
+import { useToast } from 'primevue/usetoast'
 import { generateClient } from 'aws-amplify/data'
 import type { Schema } from '../../../amplify/data/resource'
 
+// Types
 interface ReviewInput {
   id?: string
   createdBy?: string
@@ -112,21 +172,32 @@ interface UserData {
   }
 }
 
+// Props
 const props = defineProps<{
-  recipe: RecipeWithReviews;
+  recipe: RecipeWithReviews
   currentUser: {
-    username: string;
+    username: string
     signInDetails: {
-      loginId: string;
-    };
-  };
+      loginId: string
+    }
+  }
 }>()
 
+// Initialize utilities
 const client = generateClient<Schema>()
+const toast = useToast()
+
+// Component state
 const reviewComment = ref('')
 const reviewRating = ref(0)
 const hoverRating = ref(0)
+const showDeleteDialog = ref(false)
+const showDeleteError = ref(false)
+const deleteConfirmation = ref('')
+const deleting = ref(false)
+const selectedReview = ref<ReviewData | null>(null)
 
+// Review functions
 function getStars(rating: number): number[] {
   return Array.from({ length: rating }, (_, index) => index + 1)
 }
@@ -137,7 +208,12 @@ function setRating(star: number): void {
 
 async function addReview(): Promise<void> {
   if (!reviewComment.value || reviewRating.value === 0) {
-    alert('Please enter a comment and select a rating.')
+    toast.add({
+      severity: 'warn',
+      summary: 'Validation Error',
+      detail: 'Please enter a comment and select a rating.',
+      life: 3000
+    })
     return
   }
 
@@ -149,7 +225,6 @@ async function addReview(): Promise<void> {
       recipeId: props.recipe.data.id,
       owner: props.currentUser.username,
     }
-
     const createdReview = await client.models.Review.create(newReview as any)
 
     if (createdReview.data) {
@@ -157,30 +232,83 @@ async function addReview(): Promise<void> {
         props.recipe.reviews = []
       }
       props.recipe.reviews.push(createdReview.data as ReviewData)
-
       reviewComment.value = ''
       reviewRating.value = 0
+
+      toast.add({
+        severity: 'success',
+        summary: 'Success',
+        detail: 'Review added successfully',
+        life: 3000
+      })
     }
   } catch (error) {
     console.error('Error creating review:', error)
-    alert('Failed to create review. Please try again.')
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'Failed to create review. Please try again.',
+      life: 3000
+    })
   }
 }
 
-async function deleteReview(reviewId: string): Promise<void> {
+// Delete confirmation functions
+function showDeleteConfirmation(review: ReviewData) {
+  selectedReview.value = review
+  showDeleteDialog.value = true
+  deleteConfirmation.value = ''
+  showDeleteError.value = false
+}
+
+function cancelDelete() {
+  showDeleteDialog.value = false
+  deleteConfirmation.value = ''
+  showDeleteError.value = false
+  selectedReview.value = null
+}
+
+async function confirmDelete() {
+  if (deleteConfirmation.value !== 'delete') {
+    showDeleteError.value = true
+    return
+  }
+
+  if (!selectedReview.value) return
+
+  deleting.value = true
   try {
-    await client.models.Review.delete({ id: reviewId })
-    props.recipe.reviews = props.recipe.reviews.filter(
-        (review: ReviewData) => review.id !== reviewId
+    await client.models.Review.delete({ id: selectedReview.value.id })
+    props.recipe.reviews = props.recipe.reviews?.filter(
+        (review: ReviewData) => review.id !== selectedReview.value?.id
     )
+
+    toast.add({
+      severity: 'success',
+      summary: 'Success',
+      detail: 'Review deleted successfully',
+      life: 3000
+    })
   } catch (error) {
     console.error('Error deleting review:', error)
-    alert('Failed to delete review. Please try again.')
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'Failed to delete review. Please try again.',
+      life: 3000
+    })
+  } finally {
+    deleting.value = false
+    showDeleteDialog.value = false
+    deleteConfirmation.value = ''
+    showDeleteError.value = false
+    selectedReview.value = null
   }
 }
 </script>
 
 <style scoped>
+/* Rating and Review Card Styles */
 .rating-container {
   display: flex;
   gap: 4px;
@@ -250,11 +378,75 @@ async function deleteReview(reviewId: string): Promise<void> {
   transform: translateY(-2px);
 }
 
+/* Dialog Styling */
+:deep(.p-dialog-mask) {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+:deep(.p-dialog) {
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  max-width: 90vw;
+}
+
+:deep(.p-dialog-header) {
+  border-top-left-radius: 1rem;
+  border-top-right-radius: 1rem;
+  background-color: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 1.25rem 1.5rem;
+}
+
+:deep(.p-dialog-title) {
+  font-weight: 600;
+  font-size: 1.25rem;
+  color: #1f2937;
+}
+
+:deep(.p-dialog-content) {
+  padding: 0;
+  background-color: #fff;
+}
+
+:deep(.p-dialog-footer) {
+  border-bottom-left-radius: 1rem;
+  border-bottom-right-radius: 1rem;
+  background-color: #fff;
+  border-top: 1px solid #e5e7eb;
+  padding: 1.25rem 1.5rem;
+}
+
+/* Dialog Input Styling */
+:deep(.p-inputtext) {
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  border-color: #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+:deep(.p-inputtext:hover) {
+  border-color: #bca067;
+}
+
+:deep(.p-inputtext:focus) {
+  border-color: #bca067;
+  box-shadow: 0 0 0 2px rgba(188, 160, 103, 0.2);
+}
+
+:deep(.p-inputtext.p-invalid) {
+  border-color: #dc2626;
+}
+
+:deep(.p-inputtext.p-invalid:focus) {
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
+}
+
 :deep(.p-textarea) {
   width: 100%;
   font-family: 'Montserrat', sans-serif;
 }
 
+/* Light Theme Adjustments */
 @media (prefers-color-scheme: light) {
   .review-button {
     background-color: #f9f9f9;
