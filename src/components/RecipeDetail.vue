@@ -1,334 +1,299 @@
 <template>
-  <div v-if="recipe && currentUser" class="recipe-details">
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <!-- Container for recipe details, centered and padded -->
-      <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div class="relative">
-          <!-- Recipe image container with fallback for loading and error states -->
-          <div class="h-96 w-full bg-gray-200 overflow-hidden">
-            <div v-if="isImageLoading" class="w-full h-full bg-gray-200 animate-pulse"></div>
-            <!-- Displays the image or a placeholder icon if no image is available -->
-            <div v-else class="w-full h-full">
-              <img
-                  v-if="recipe.data.imageLinks && recipe.data.imageLinks.length > 0"
-                  :src="recipe.data.imageLinks[0]"
-                  :alt="recipe.data.name"
-                  class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                  @load="handleImageLoad"
-                  @error="handleImageError"
-                  loading="lazy"
-              />
-              <div v-else class="w-full h-full flex items-center justify-center bg-gray-100">
-                <i class="fa-solid fa-image text-gray-400 text-4xl"></i>
-              </div>
-            </div>
-          </div>
-          <!-- Recipe title, author, time, and servings displayed at the bottom of the image -->
-          <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-8">
-            <div class="flex justify-between items-start">
-              <h1 class="text-4xl font-bold text-white mb-4">{{ recipe.data.name }}</h1>
-              <button
-                  v-if="showEditDelete"
-                  class="p-2 text-white hover:bg-black/20 rounded-full transition-colors"
-                  @click="menu?.toggle"
-              >
-                <i class="fa-solid fa-ellipsis-vertical"></i>
-              </button>
-            </div>
-            <div class="flex items-center gap-6 text-white">
-              <p class="flex items-center gap-2">
-                <i class="fa-solid fa-user text-gold"></i>
-                {{ recipe.data.createdBy }}
-              </p>
-              <div class="flex items-center gap-2">
-                <i class="fa-solid fa-clock text-gold"></i>
-                {{ recipe.data.time }}
-              </div>
-              <div class="flex items-center gap-2">
-                <i class="fa-solid fa-utensils text-gold"></i>
-                {{ recipe.data.numServings }} servings
-              </div>
-            </div>
-          </div>
+  <main class="flex flex-col m-auto justify-center content-center items-center p-8 md:py-12">
+    <Toast />
+    <!-- Loading State -->
+    <div v-if="loading" class="w-full max-w-4xl">
+      <div class="animate-pulse space-y-8">
+        <div class="h-96 bg-gray-200 rounded-xl"></div>
+        <div class="space-y-4">
+          <div class="h-8 bg-gray-200 rounded w-3/4"></div>
+          <div class="h-4 bg-gray-200 rounded w-1/2"></div>
         </div>
-        <!-- Recipe details: difficulty, description, ingredients, and instructions -->
+      </div>
+    </div>
+
+    <!-- Recipe Not Found State -->
+    <div v-else-if="!recipe" class="text-center">
+      <h2 class="text-2xl font-semibold mb-4">Recipe not found</h2>
+      <Button label="Back to Recipes" @click="router.push('/')" />
+    </div>
+
+    <!-- Recipe Content -->
+    <div v-else class="w-full max-w-4xl">
+      <!-- Recipe Card -->
+      <div class="bg-white rounded-xl shadow-lg overflow-hidden border-2 border-[#bca067]/20">
+        <!-- Image Section with Options Menu -->
+        <div class="relative h-[500px] w-full">
+          <!-- Loading State for Image -->
+          <div v-if="!recipe.hasLoadedImages" class="w-full h-full bg-gray-200 animate-pulse"></div>
+
+          <!-- Recipe Image -->
+          <img
+              v-else-if="recipe.imageLinks && recipe.imageLinks[0]"
+              :src="recipe.imageLinks[0]"
+              :alt="recipe.name"
+              class="w-full h-full object-cover"
+          />
+
+          <!-- Edit Button Component -->
+          <EditButton
+              v-if="isCreator"
+              :recipe-id="recipe.id"
+              :recipe-name="recipe.name"
+              @deleted="handleRecipeDeleted"
+          />
+        </div>
+
+        <!-- Recipe Content -->
         <div class="p-8">
-          <!-- Difficulty level represented by colored dots -->
-          <div class="flex items-center gap-4 mb-6">
-            <span class="text-lg font-semibold">Difficulty:</span>
-            <div class="flex gap-2">
-              <span
-                  v-for="(dot, index) in getDifficultyDots(recipe.data.difficulty)"
-                  :key="index"
-                  :class="dotClass(dot)"
-                  class="dot"
-              ></span>
+          <!-- Header Section -->
+          <div class="mb-8">
+            <h1 class="text-4xl font-playfair mb-4">{{ recipe.name }}</h1>
+            <p class="text-gray-600 mb-4">{{ recipe.description }}</p>
+            <div class="flex items-center text-sm text-gray-500">
+              <span>Created by {{ recipe.createdBy }}</span>
+              <span class="mx-2">•</span>
+              <span>{{ formatDate(recipe.createdAt) }}</span>
             </div>
           </div>
-          <!-- Description section -->
-          <div class="mb-8">
-            <h2 class="text-2xl font-semibold mb-4 text-gold">Description</h2>
-            <p class="text-gray-700 leading-relaxed">{{ recipe.data.description }}</p>
+
+          <!-- Recipe Metadata -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="flex flex-col items-center p-4 bg-[#ebe7e4] rounded-lg">
+              <i class="fa-solid fa-clock text-[#bca067] mb-2"></i>
+              <span class="text-sm font-medium">{{ recipe.time }}</span>
+            </div>
+            <div class="flex flex-col items-center p-4 bg-[#ebe7e4] rounded-lg">
+              <i class="fa-solid fa-utensils text-[#bca067] mb-2"></i>
+              <span class="text-sm font-medium">{{ recipe.numServings }}</span>
+            </div>
+            <div class="flex flex-col items-center p-4 bg-[#ebe7e4] rounded-lg">
+              <i class="fa-solid fa-chart-line text-[#bca067] mb-2"></i>
+              <span class="text-sm font-medium">{{ recipe.difficulty }}</span>
+            </div>
+            <div class="flex flex-col items-center p-4 bg-[#ebe7e4] rounded-lg">
+              <i class="fa-solid fa-tag text-[#bca067] mb-2"></i>
+              <span class="text-sm font-medium">{{ recipe.course }}</span>
+            </div>
           </div>
-          <!-- Ingredients list -->
+
+          <!-- Ingredients Section -->
           <div class="mb-8">
-            <h2 class="text-2xl font-semibold mb-4 text-gold">Ingredients</h2>
-            <ul class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <li
-                  v-for="(ingredient, index) in recipe.data.ingredients"
-                  :key="index"
-                  class="flex items-center gap-2 text-gray-700"
-              >
-                <i class="fa-solid fa-circle-check text-gold text-sm"></i>
+            <h2 class="text-2xl font-playfair mb-4">Ingredients</h2>
+            <ul class="list-disc list-inside space-y-2">
+              <li v-for="ingredient in recipe.ingredients" :key="ingredient" class="text-gray-700">
                 {{ ingredient }}
               </li>
             </ul>
           </div>
-          <!-- Step-by-step instructions list -->
+
+          <!-- Instructions Section -->
           <div class="mb-8">
-            <h2 class="text-2xl font-semibold mb-4 text-gold">Instructions</h2>
-            <ol class="space-y-4">
+            <h2 class="text-2xl font-playfair mb-4">Instructions</h2>
+            <ol class="list-decimal list-inside space-y-4">
               <li
-                  v-for="(instruction, index) in recipe.data.instructions"
+                  v-for="(instruction, index) in recipe.instructions"
                   :key="index"
-                  class="flex gap-4 text-gray-700"
+                  class="text-gray-700 pl-2"
               >
-                <span class="flex-shrink-0 w-8 h-8 rounded-full bg-gold text-white flex items-center justify-center font-semibold">
-                  {{ index + 1 }}
-                </span>
-                <p class="pt-1">{{ instruction }}</p>
+                {{ instruction }}
               </li>
             </ol>
           </div>
-          <!-- Component for displaying and handling recipe reviews -->
-          <RecipeReview
-              v-if="recipe"
-              :recipe="recipe"
-              :currentUser="currentUser"
-          />
         </div>
       </div>
-    </main>
-    <!-- Overlay menu for edit/delete options -->
-    <Menu ref="menu" :model="items" id="overlaymenu" v-if="showEditDelete" />
-  </div>
+
+      <!-- Reviews Section -->
+      <div v-if="!isCreator" class="mt-8">
+        <RecipeReview
+            :recipe="{ data: recipe, reviews: recipe.reviews || [] }"
+            :current-user="currentUser"
+        />
+      </div>
+    </div>
+  </main>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { getCurrentUser } from 'aws-amplify/auth';
-import { generateClient } from 'aws-amplify/data';
-import { getUrl } from '@aws-amplify/storage';
-import type { Schema } from '../../amplify/data/resource';
-import Menu from 'primevue/menu';
-import RecipeReview from './recipe/RecipeReview.vue';
+import { ref, onMounted, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { generateClient } from 'aws-amplify/data'
+import { getCurrentUser } from 'aws-amplify/auth'
+import { getUrl } from 'aws-amplify/storage'
+import type { Schema } from '../../amplify/data/resource'
+import Button from 'primevue/button'
+import Toast from 'primevue/toast'
+import { useToast } from 'primevue/usetoast'
+import RecipeReview from './recipe/RecipeReview.vue'
+import EditButton from './button/EditButton.vue'
 
+// Type definitions
 interface Review {
-  id: string;
-  reviewStars: number;
-  reviewText: string;
-  recipeId: string;
-  createdBy: string;
-  owner: string;
+  id: string
+  createdBy: string
+  reviewStars: number
+  reviewText: string
+  recipeId: string
+  owner: string
+  createdAt: string
+  updatedAt: string
 }
 
-interface RecipeData {
-  id: string;
-  createdBy: string;
-  name: string;
-  description: string;
-  course: string;
-  time: string;
-  numServings: string;
-  difficulty: string;
-  ingredients: string[];
-  instructions: string[];
-  owner: string;
-  imageFileNames: string[];
-  imageLinks: string[];
-  hasLoadedImages: boolean;
-  createdAt: string;
-  updatedAt: string;
+interface Recipe {
+  id: string
+  createdBy: string
+  name: string
+  description: string
+  course: string
+  time: string
+  numServings: string
+  difficulty: string
+  ingredients: string[]
+  instructions: string[]
+  owner: string
+  imageFileNames: string[]
+  imageLinks?: string[]
+  hasLoadedImages?: boolean
+  createdAt: string
+  updatedAt: string
+  reviews?: Review[]
 }
 
-interface RecipeWithReviews {
-  data: RecipeData;
-  reviews?: Review[];
-}
-
-// State variables and references
-const currentUser = ref<any>(null);
-const client = generateClient<Schema>();
-const route = useRoute();
-const router = useRouter();
-const recipe = ref<RecipeWithReviews | null>(null);
-const menu = ref();
-const isImageLoading = ref(true);
-
-// Computed property to determine if the edit/delete menu should be shown
-const showEditDelete = computed(() => {
-  return currentUser.value?.signInDetails?.loginId === recipe.value?.data?.createdBy;
-});
-
-// Menu items for edit and delete actions
-const items = ref([
-  {
-    label: 'Edit',
-    icon: 'fa-solid fa-edit',
-    command: () => handleEdit(),
-  },
-  {
-    label: 'Delete',
-    icon: 'fa-solid fa-trash',
-    command: () => handleDelete(),
-  },
-]);
-
-// Function to handle image loading errors
-const handleImageError = (event: Event) => {
-  console.error('Image failed to load:', event);
-  isImageLoading.value = false;
-  if (event.target instanceof HTMLImageElement) {
-    event.target.src = '/images/recipe-placeholder.jpg';
+interface CurrentUser {
+  username: string
+  signInDetails: {
+    loginId: string
   }
-};
+}
 
-// Function to mark image as loaded
-const handleImageLoad = () => {
-  isImageLoading.value = false;
-};
+// State Management
+const loading = ref(true)
+const currentUser = ref<CurrentUser>()
+const recipe = ref<Recipe>()
 
-// Fetches recipe data and current user info upon component mount
-onMounted(async () => {
-  try {
-    const recipeId = Array.isArray(route.params.id) ? route.params.id[0] : route.params.id;
-    const recipeResult = await client.models.Recipe.get({ id: recipeId });
-    currentUser.value = await getCurrentUser();
+// Router and client setup
+const router = useRouter()
+const route = useRoute()
+const client = generateClient<Schema>()
+const toast = useToast()
 
-    // Initialize recipe data and load images
-    const recipeData: RecipeData = {
-      ...recipeResult.data,
-      imageLinks: [],
-      hasLoadedImages: false,
-    };
-    recipe.value = { data: recipeData };
+// Computed Properties
+const isCreator = computed(() => {
+  return currentUser.value?.username === recipe.value?.owner
+})
 
-    if (recipe.value.data.imageFileNames?.length > 0) {
-      const imagePromises = recipe.value.data.imageFileNames.map(async (fileName: string) => {
-        try {
-          const fullPath = `recipe-manager/${fileName}`;
-          const urlResult = await getUrl({
-            key: fullPath,
-            options: { accessLevel: 'protected', validateObjectExistence: true }
-          });
-          return urlResult.url.toString();
-        } catch (error) {
-          console.error('Error fetching image URL:', error);
-          return null;
-        }
-      });
-
-      const urls = await Promise.all(imagePromises);
-      recipe.value.data.imageLinks = urls.filter((url): url is string => url !== null);
-      recipe.value.data.hasLoadedImages = true;
-      isImageLoading.value = false;
-    } else {
-      isImageLoading.value = false;
-    }
-
+// Load recipe images
+async function getImages(recipeData: Recipe) {
+  if (recipeData.imageFileNames && recipeData.imageFileNames.length > 0) {
     try {
-      const reviewList = await client.models.Review.list({
-        filter: { recipeId: { eq: recipeId } },
-      });
-      recipe.value.reviews = reviewList.data;
+      const imagePromises = recipeData.imageFileNames.map(async (fileName) => {
+        try {
+          const getLink = await getUrl({
+            path: `recipe-manager/images/${recipeData.id}/${fileName}`,
+            options: {
+              bucket: 'recipe-manager-bucket',
+              expiresIn: 3600
+            }
+          })
+          return getLink.url.toString()
+        } catch (error) {
+          console.error('Error getting image URL:', error)
+          return null
+        }
+      })
+      const resolvedLinks = await Promise.all(imagePromises)
+      recipeData.imageLinks = resolvedLinks.filter((link): link is string => link !== null)
+      recipeData.hasLoadedImages = recipeData.imageLinks.length > 0
     } catch (error) {
-      console.error('Error loading reviews:', error);
-      recipe.value.reviews = [];
+      console.error('Error processing images:', error)
+      recipeData.hasLoadedImages = false
+      recipeData.imageLinks = []
+    }
+  }
+}
+
+// Fetch recipe data
+async function fetchRecipe() {
+  try {
+    const response = await client.models.Recipe.get({ id: route.params.id as string })
+    if (response.data) {
+      // Create a new Recipe object with the response data
+      const recipeData: Recipe = {
+        id: response.data.id,
+        createdBy: response.data.createdBy,
+        name: response.data.name,
+        description: response.data.description,
+        course: response.data.course,
+        time: response.data.time,
+        numServings: response.data.numServings,
+        difficulty: response.data.difficulty,
+        ingredients: response.data.ingredients,
+        instructions: response.data.instructions,
+        owner: response.data.owner,
+        imageFileNames: response.data.imageFileNames,
+        createdAt: response.data.createdAt,
+        updatedAt: response.data.updatedAt,
+        reviews: []
+      }
+
+      // Fetch reviews if they exist
+      try {
+        const reviewsResponse = await client.models.Review.list({
+          filter: { recipeId: { eq: response.data.id } }
+        })
+        if (reviewsResponse.data) {
+          recipeData.reviews = reviewsResponse.data as Review[]
+        }
+      } catch (error) {
+        console.error('Error fetching reviews:', error)
+      }
+
+      recipe.value = recipeData
+      await getImages(recipe.value)
     }
   } catch (error) {
-    console.error('Error loading recipe:', error);
-    isImageLoading.value = false;
+    console.error('Error fetching recipe:', error)
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'Failed to load recipe',
+      life: 3000
+    })
+  } finally {
+    loading.value = false
   }
-});
+}
 
-// Navigates to the edit recipe page
-const handleEdit = () => {
-  router.push(`/recipe/edit/${recipe.value?.data?.id}`);
-};
+// Handle recipe deletion from EditButton
+function handleRecipeDeleted() {
+  router.push('/')
+}
 
-// Deletes the recipe and navigates back to the recipe list page
-const handleDelete = async () => {
-  if (confirm('Are you sure you want to delete this recipe?')) {
-    try {
-      await client.models.Recipe.delete({
-        id: recipe.value?.data?.id,
-      });
-      router.push('/recipes');
-    } catch (error) {
-      console.error('Error deleting recipe:', error);
+// Format date helper
+function formatDate(dateString: string): string {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}
+
+// Component lifecycle
+onMounted(async () => {
+  const authUser = await getCurrentUser()
+  // Parse the AuthUser into our CurrentUser format
+  currentUser.value = {
+    username: authUser.username,
+    signInDetails: {
+      loginId: authUser.signInDetails.loginId
     }
   }
-};
-
-// Maps difficulty levels to dot representations
-function getDifficultyDots(difficulty: string): number[] {
-  switch (difficulty) {
-    case 'Easy': return [1, 0, 0];
-    case 'Medium': return [2, 2, 0];
-    case 'Hard': return [3, 3, 3];
-    default: return [0, 0, 0];
-  }
-}
-
-// Maps dot numbers to specific colors
-function dotClass(dot: number): string {
-  switch (dot) {
-    case 1: return 'bg-green-500';
-    case 2: return 'bg-orange-400';
-    case 3: return 'bg-red-600';
-    default: return 'bg-gray-300';
-  }
-}
+  await fetchRecipe()
+})
 </script>
 
 <style scoped>
-.text-gold {
-  color: #bca067;
-}
-
-.bg-gold {
-  background-color: #bca067;
-}
-
-.dot {
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  display: inline-block;
-}
-
-.recipe-details {
-  background-color: #f8f9fa;
-  min-height: 100vh;
-}
-
-.recipe-details img {
-  transition: transform 0.3s ease-in-out;
-}
-
-.recipe-details img:hover {
-  transform: scale(1.05);
-}
-
-.shadow-xl {
-  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-}
-
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
+/* Loading animation */
 @keyframes pulse {
   0%, 100% {
     opacity: 1;
@@ -336,5 +301,14 @@ function dotClass(dot: number): string {
   50% {
     opacity: 0.5;
   }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Font styling */
+.font-playfair {
+  font-family: 'Playfair Display', serif;
 }
 </style>
