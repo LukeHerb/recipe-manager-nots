@@ -1,13 +1,8 @@
 <!-- src/components/composables/HeroBanner.vue -->
 <template>
-  <section class="relative w-full h-[600px] overflow-hidden">
+  <section class="relative w-full h-[600px] overflow-hidden wrapper">
     <!-- Background Image Container -->
     <div class="absolute inset-0">
-      <img
-        :src="backgroundImg"
-        alt="Delicious food preparation"
-        class="w-full h-full object-cover"
-      />
       <!-- Gradient Overlay -->
       <div
         class="absolute inset-0 bg-gradient-to-r from-black/70 to-black/50"
@@ -223,6 +218,12 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* Hero Section Styles */
+.wrapper {
+  background: url('../../assets/hero-image.jpeg');
+  background-size: cover;
+  background-position: center;
+}
 /* Hero Section Animations */
 section {
   animation: fadeIn 1s ease-out;
