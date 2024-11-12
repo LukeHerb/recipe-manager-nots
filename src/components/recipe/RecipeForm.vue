@@ -236,7 +236,6 @@ const handleFileUpload = async (event: Event) => {
   const target = event.target as HTMLInputElement
   if (target.files && target.files.length > 0) {
     const file = target.files[0]
-    console.log(`Uploading file: ${file.name}`)
 
     try {
       const result = await uploadData({
@@ -246,9 +245,7 @@ const handleFileUpload = async (event: Event) => {
           bucket: 'recipe-manager-bucket',
         },
       }).result
-      console.log(JSON.stringify(result))
 
-      console.log(`Upload successful: ${JSON.stringify(result)}`)
       const getLink = await getUrl({
         path: `recipe-manager/images/${props.recipeID}/${file.name}`,
         options: {

@@ -193,8 +193,6 @@ async function handleFileUpload(event: Event) {
         },
       }).result
 
-      console.log('Upload successful:', result)
-
       // Add new image to recipe
       recipe.value.imageFileNames = [file.name]
       await loadImages(recipe.value)
@@ -288,8 +286,6 @@ async function saveRecipe(newRecipe: Recipe) {
   if (!validateRecipe()) {
     return
   }
-
-  console.log('Saving recipe:', newRecipe)
 
   saving.value = true
   try {

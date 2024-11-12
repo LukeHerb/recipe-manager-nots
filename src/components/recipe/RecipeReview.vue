@@ -267,7 +267,6 @@ async function addReview(): Promise<void> {
       0
     )
 
-    console.log(props.recipe.reviews?.length)
     const newAverageRating = totalRating / totalReviews
 
     await client.models.Recipe.update({
