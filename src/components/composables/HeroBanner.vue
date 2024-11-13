@@ -2,23 +2,23 @@
 <template>
   <div class="wrapper">
     <section class="relative w-full h-[600px] overflow-hidden">
-      <!-- Background Image Container -->
+      <!-- Static Background Image and Overlay Container -->
       <div class="absolute inset-0">
-        <!-- Gradient Overlay -->
+        <!-- Gradient Overlay - No animation applied -->
         <div
-          class="absolute inset-0 bg-gradient-to-r from-black/70 to-black/50"
-          aria-hidden="true"
+            class="absolute inset-0 bg-gradient-to-r from-black/70 to-black/50 static-overlay"
+            aria-hidden="true"
         ></div>
       </div>
 
-      <!-- Content Container -->
-      <div class="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Animated Content Container -->
+      <div class="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animated-content">
         <div class="flex flex-col justify-center h-full">
           <!-- Hero Text Content -->
           <div class="max-w-3xl">
             <!-- Main Heading -->
             <h1
-              class="font-playfair text-4xl md:text-5xl lg:text-6xl text-white mb-6 leading-tight"
+                class="font-playfair text-4xl md:text-5xl lg:text-6xl text-white mb-6 leading-tight"
             >
               Discover & Share Your
               <span class="text-[#bca067]">Culinary Journey</span>
@@ -26,7 +26,7 @@
 
             <!-- Subheading -->
             <p
-              class="font-montserrat text-lg md:text-xl text-gray-200 mb-8 leading-relaxed"
+                class="font-montserrat text-lg md:text-xl text-gray-200 mb-8 leading-relaxed"
             >
               Join our community of food enthusiasts. Share your favorite
               recipes, discover new dishes, and learn from experienced home
@@ -36,14 +36,14 @@
             <!-- Call to Action Buttons -->
             <div class="flex flex-wrap gap-4">
               <button
-                @click="$router.push('/addRecipe')"
-                class="bg-[#bca067] hover:bg-[#ab8f56] text-white font-montserrat px-8 py-3 rounded-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
+                  @click="$router.push('/addRecipe')"
+                  class="bg-[#bca067] hover:bg-[#ab8f56] text-white font-montserrat px-8 py-3 rounded-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
               >
                 Share Recipe
               </button>
               <button
-                @click="handleBrowseClick"
-                class="border-2 border-[#bca067] text-white hover:bg-[#bca067]/10 font-montserrat px-8 py-3 rounded-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
+                  @click="handleBrowseClick"
+                  class="border-2 border-[#bca067] text-white hover:bg-[#bca067]/10 font-montserrat px-8 py-3 rounded-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
               >
                 Browse Recipes
               </button>
@@ -54,17 +54,17 @@
           <div class="absolute bottom-8 right-8">
             <div class="flex gap-8">
               <div
-                v-for="stat in statistics"
-                :key="stat.label"
-                class="text-center"
+                  v-for="stat in statistics"
+                  :key="stat.label"
+                  class="text-center"
               >
                 <p class="text-[#bca067] font-playfair text-4xl font-bold mb-2">
                   <span ref="counterRefs" class="counter-value">{{
-                    stat.displayValue
-                  }}</span>
+                      stat.displayValue
+                    }}</span>
                 </p>
                 <p
-                  class="text-white font-montserrat text-sm uppercase tracking-wider"
+                    class="text-white font-montserrat text-sm uppercase tracking-wider"
                 >
                   {{ stat.label }}
                 </p>
@@ -78,7 +78,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { generateClient } from 'aws-amplify/data'
 import type { Schema } from '../../../amplify/data/resource'
@@ -149,7 +149,7 @@ function animateCounter(stat: Statistic) {
       const progress = frame / FRAMES
       const easedProgress = easeOutQuart(progress)
       const currentValue = Math.round(
-        stat.startValue + (stat.endValue - stat.startValue) * easedProgress
+          stat.startValue + (stat.endValue - stat.startValue) * easedProgress
       )
       stat.displayValue = currentValue
       frame++
@@ -172,10 +172,10 @@ const fetchStatistics = async () => {
 
     // Get unique users
     const recipeCreators = new Set(
-      recipesResponse.data.map((recipe) => recipe.owner)
+        recipesResponse.data.map((recipe) => recipe.owner)
     )
     const reviewers = new Set(
-      reviewsResponse.data.map((review) => review.owner)
+        reviewsResponse.data.map((review) => review.owner)
     )
     const uniqueUsers = new Set([...recipeCreators, ...reviewers])
 
@@ -226,12 +226,25 @@ onMounted(() => {
   background-size: cover;
   background-position: center;
 }
-/* Hero Section Animations */
-section {
-  animation: fadeIn 1s ease-out;
+
+/* Static overlay styles - No animation */
+.static-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
 }
 
-@keyframes fadeIn {
+/* Animated content styles */
+.animated-content {
+  position: relative;
+  z-index: 2;
+  animation: fadeInContent 1s ease-out;
+}
+
+@keyframes fadeInContent {
   from {
     opacity: 0;
     transform: translateY(20px);
@@ -273,7 +286,7 @@ button:focus {
 
 /* Reduce motion if user prefers */
 @media (prefers-reduced-motion: reduce) {
-  section,
+  .animated-content,
   button,
   .counter-value {
     animation: none;
