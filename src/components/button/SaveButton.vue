@@ -72,6 +72,7 @@ const isSaved = ref(false)
 // }
 
 const handleSave = () => {
+  console.log(`recipe id: ${props.recipeId} saved by user id: ${props.userId}`)
   isSaved.value = !isSaved.value
 }
 </script>
