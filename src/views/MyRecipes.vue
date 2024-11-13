@@ -5,21 +5,27 @@
 
     <!-- Page Header Section -->
     <div class="w-11/12 md:w-full mb-8">
-      <h1 class="font-playfair text-4xl md:text-5xl mb-2">My Recipe Collection</h1>
-      <p class="font-montserrat text-gray-600 text-lg">Manage and organize your culinary creations</p>
+      <h1 class="font-playfair text-4xl md:text-5xl mb-2">
+        My Recipe Collection
+      </h1>
+      <p class="font-montserrat text-gray-600 text-lg">
+        Manage and organize your culinary creations
+      </p>
     </div>
 
     <!-- Enhanced Loading State -->
     <div v-if="loading" class="w-full max-w-4xl">
       <div class="grid gap-6 grid-cols-1 md:grid-cols-2">
         <div
-            v-for="n in 4"
-            :key="n"
-            class="recipe-skeleton"
-            :style="{ animationDelay: `${(n - 1) * 0.15}s` }"
+          v-for="n in 4"
+          :key="n"
+          class="recipe-skeleton"
+          :style="{ animationDelay: `${(n - 1) * 0.15}s` }"
         >
           <!-- Image Skeleton -->
-          <div class="relative h-[300px] rounded-xl overflow-hidden loading-shimmer">
+          <div
+            class="relative h-[300px] rounded-xl overflow-hidden loading-shimmer"
+          >
             <div class="absolute inset-0 bg-gradient-skeleton"></div>
           </div>
 
@@ -30,7 +36,9 @@
 
             <!-- Title Skeleton -->
             <div class="space-y-2">
-              <div class="h-8 bg-gray-200 rounded-lg w-3/4 loading-shimmer"></div>
+              <div
+                class="h-8 bg-gray-200 rounded-lg w-3/4 loading-shimmer"
+              ></div>
               <div class="h-4 bg-gray-200 rounded w-1/2 loading-shimmer"></div>
             </div>
 
@@ -44,9 +52,15 @@
             <div class="flex justify-between items-center mt-6">
               <!-- Difficulty Dots -->
               <div class="flex gap-1">
-                <div class="w-2 h-2 rounded-full bg-gray-200 loading-shimmer"></div>
-                <div class="w-2 h-2 rounded-full bg-gray-200 loading-shimmer"></div>
-                <div class="w-2 h-2 rounded-full bg-gray-200 loading-shimmer"></div>
+                <div
+                  class="w-2 h-2 rounded-full bg-gray-200 loading-shimmer"
+                ></div>
+                <div
+                  class="w-2 h-2 rounded-full bg-gray-200 loading-shimmer"
+                ></div>
+                <div
+                  class="w-2 h-2 rounded-full bg-gray-200 loading-shimmer"
+                ></div>
               </div>
               <!-- Time -->
               <div class="h-4 bg-gray-200 rounded w-24 loading-shimmer"></div>
@@ -63,10 +77,12 @@
       <!-- Created Recipes Section -->
       <section>
         <div class="flex justify-between items-center mb-6">
-          <h2 class="font-playfair text-2xl md:text-3xl">Recipes You've Created</h2>
+          <h2 class="font-playfair text-2xl md:text-3xl">
+            Recipes You've Created
+          </h2>
           <router-link
-              to="/addRecipe"
-              class="bg-[#bca067] hover:bg-[#ab8f56] text-white font-montserrat px-6 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg flex items-center gap-2"
+            to="/addRecipe"
+            class="bg-[#bca067] hover:bg-[#ab8f56] text-white font-montserrat px-6 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg flex items-center gap-2"
           >
             <i class="fa-solid fa-plus"></i>
             <span>Create New Recipe</span>
@@ -75,8 +91,8 @@
 
         <!-- No Created Recipes State -->
         <div
-            v-if="createdRecipes.length === 0"
-            class="bg-[#ebe7e4] rounded-xl p-8 text-center"
+          v-if="createdRecipes.length === 0"
+          class="bg-[#ebe7e4] rounded-xl p-8 text-center"
         >
           <i class="fa-solid fa-book-open text-4xl text-[#bca067] mb-4"></i>
           <h3 class="font-playfair text-xl mb-2">No Recipes Created Yet</h3>
@@ -84,8 +100,8 @@
             Start sharing your culinary creations with the community
           </p>
           <router-link
-              to="/addRecipe"
-              class="inline-block bg-[#bca067] hover:bg-[#ab8f56] text-white font-montserrat px-6 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
+            to="/addRecipe"
+            class="inline-block bg-[#bca067] hover:bg-[#ab8f56] text-white font-montserrat px-6 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
           >
             Create Your First Recipe
           </router-link>
@@ -94,25 +110,22 @@
         <!-- Created Recipes Grid -->
         <ul v-else class="grid gap-6 grid-cols-1 md:grid-cols-2">
           <RecipeCard
-              v-for="recipe in createdRecipes"
-              :key="recipe.id"
-              :recipe="recipe"
+            v-for="recipe in createdRecipes"
+            :key="recipe.id"
+            :recipe="recipe"
           />
         </ul>
 
         <!-- Load More Created Recipes -->
-        <div
-            v-if="hasMoreCreatedRecipes"
-            class="flex justify-center mt-8"
-        >
+        <div v-if="hasMoreCreatedRecipes" class="flex justify-center mt-8">
           <button
-              @click="loadMoreCreatedRecipes"
-              class="border-2 border-[#bca067] text-[#bca067] hover:bg-[#bca067]/10 font-montserrat px-8 py-3 rounded-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg flex items-center gap-2"
-              :disabled="loadingMore"
+            @click="loadMoreCreatedRecipes"
+            class="border-2 border-[#bca067] text-[#bca067] hover:bg-[#bca067]/10 font-montserrat px-8 py-3 rounded-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg flex items-center gap-2"
+            :disabled="loadingMore"
           >
             <i
-                class="fa-solid fa-spinner fa-spin"
-                :class="{ 'opacity-0': !loadingMore }"
+              class="fa-solid fa-spinner fa-spin"
+              :class="{ 'opacity-0': !loadingMore }"
             ></i>
             <span>{{ loadingMore ? 'Loading...' : 'Load More' }}</span>
           </button>
@@ -128,8 +141,8 @@
 
         <!-- No Saved Recipes State -->
         <div
-            v-if="savedRecipes.length === 0"
-            class="bg-[#ebe7e4] rounded-xl p-8 text-center"
+          v-if="savedRecipes.length === 0"
+          class="bg-[#ebe7e4] rounded-xl p-8 text-center"
         >
           <i class="fa-solid fa-bookmark text-4xl text-[#bca067] mb-4"></i>
           <h3 class="font-playfair text-xl mb-2">No Saved Recipes</h3>
@@ -137,8 +150,8 @@
             Browse recipes and save your favorites for quick access
           </p>
           <router-link
-              to="/"
-              class="inline-block bg-[#bca067] hover:bg-[#ab8f56] text-white font-montserrat px-6 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
+            to="/"
+            class="inline-block bg-[#bca067] hover:bg-[#ab8f56] text-white font-montserrat px-6 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
           >
             Browse Recipes
           </router-link>
@@ -147,25 +160,22 @@
         <!-- Saved Recipes Grid -->
         <ul v-else class="grid gap-6 grid-cols-1 md:grid-cols-2">
           <RecipeCard
-              v-for="recipe in savedRecipes"
-              :key="recipe.id"
-              :recipe="recipe"
+            v-for="recipe in savedRecipes"
+            :key="recipe.id"
+            :recipe="recipe"
           />
         </ul>
 
         <!-- Load More Saved Recipes -->
-        <div
-            v-if="hasMoreSavedRecipes"
-            class="flex justify-center mt-8"
-        >
+        <div v-if="hasMoreSavedRecipes" class="flex justify-center mt-8">
           <button
-              @click="loadMoreSavedRecipes"
-              class="border-2 border-[#bca067] text-[#bca067] hover:bg-[#bca067]/10 font-montserrat px-8 py-3 rounded-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg flex items-center gap-2"
-              :disabled="loadingMore"
+            @click="loadMoreSavedRecipes"
+            class="border-2 border-[#bca067] text-[#bca067] hover:bg-[#bca067]/10 font-montserrat px-8 py-3 rounded-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg flex items-center gap-2"
+            :disabled="loadingMore"
           >
             <i
-                class="fa-solid fa-spinner fa-spin"
-                :class="{ 'opacity-0': !loadingMore }"
+              class="fa-solid fa-spinner fa-spin"
+              :class="{ 'opacity-0': !loadingMore }"
             ></i>
             <span>{{ loadingMore ? 'Loading...' : 'Load More' }}</span>
           </button>
@@ -217,7 +227,10 @@ interface ExtendedRecipe {
 // Component state
 const loading = ref(true)
 const loadingMore = ref(false)
-const currentUser = ref<{ username: string; signInDetails: { loginId: string } } | null>(null)
+const currentUser = ref<{
+  username: string
+  signInDetails: { loginId: string }
+} | null>(null)
 const createdRecipes = ref<ExtendedRecipe[]>([])
 const savedRecipes = ref<ExtendedRecipe[]>([])
 const hasMoreCreatedRecipes = ref(false)
@@ -246,7 +259,9 @@ async function getImages(recipe: ExtendedRecipe) {
         }
       })
       const resolvedLinks = await Promise.all(imagePromises)
-      recipe.imageLinks = resolvedLinks.filter((link): link is string => link !== null)
+      recipe.imageLinks = resolvedLinks.filter(
+        (link): link is string => link !== null
+      )
       recipe.hasLoadedImages = recipe.imageLinks.length > 0
     } catch (error) {
       console.error('Error processing images:', error)
@@ -271,17 +286,17 @@ async function fetchCreatedRecipes(nextToken: string | null = null) {
     if (response.data) {
       // Process recipe data
       const recipes = await Promise.all(
-          response.data.map(async (recipe) => {
-            const processedRecipe: ExtendedRecipe = {
-              ...recipe,
-              imageLinks: [],           // Initialize with empty array
-              hasLoadedImages: false,   // Initialize as false
-              averageRating: recipe.averageRating || 0,
-              numReviews: recipe.numReviews || 0
-            }
-            await getImages(processedRecipe)
-            return processedRecipe
-          })
+        response.data.map(async (recipe) => {
+          const processedRecipe: ExtendedRecipe = {
+            ...recipe,
+            imageLinks: [], // Initialize with empty array
+            hasLoadedImages: false, // Initialize as false
+            averageRating: recipe.averageRating || 0,
+            numReviews: recipe.numReviews || 0,
+          }
+          await getImages(processedRecipe)
+          return processedRecipe
+        })
       )
 
       // Update state
@@ -351,10 +366,7 @@ async function initializeData() {
         loginId: authUser.signInDetails.loginId,
       },
     }
-    await Promise.all([
-      fetchCreatedRecipes(),
-      fetchSavedRecipes(),
-    ])
+    await Promise.all([fetchCreatedRecipes(), fetchSavedRecipes()])
   } catch (error) {
     console.error('Error initializing data:', error)
     toast.add({
@@ -417,11 +429,11 @@ main {
   left: 0;
   transform: translateX(-100%);
   background-image: linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0) 0,
-      rgba(255, 255, 255, 0.2) 20%,
-      rgba(255, 255, 255, 0.5) 60%,
-      rgba(255, 255, 255, 0)
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.2) 20%,
+    rgba(255, 255, 255, 0.5) 60%,
+    rgba(255, 255, 255, 0)
   );
   animation: shimmer 2s infinite;
   will-change: transform;
@@ -429,12 +441,7 @@ main {
 
 /* Gradient Background for Image Skeleton */
 .bg-gradient-skeleton {
-  background: linear-gradient(
-      110deg,
-      #ebe7e4 30%,
-      #f3f4f6 50%,
-      #ebe7e4 70%
-  );
+  background: linear-gradient(110deg, #ebe7e4 30%, #f3f4f6 50%, #ebe7e4 70%);
   background-size: 200% 100%;
   animation: gradientMove 1.5s ease-in-out infinite;
   will-change: background-position;
@@ -488,7 +495,11 @@ button:disabled {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(45deg, rgba(188, 160, 103, 0.1) 0%, transparent 100%);
+  background: linear-gradient(
+    45deg,
+    rgba(188, 160, 103, 0.1) 0%,
+    transparent 100%
+  );
   pointer-events: none;
 }
 
@@ -506,10 +517,10 @@ button:disabled {
   width: 100%;
   height: 2px;
   background: linear-gradient(
-      90deg,
-      rgba(188, 160, 103, 0) 0%,
-      rgba(188, 160, 103, 0.2) 50%,
-      rgba(188, 160, 103, 0) 100%
+    90deg,
+    rgba(188, 160, 103, 0) 0%,
+    rgba(188, 160, 103, 0.2) 50%,
+    rgba(188, 160, 103, 0) 100%
   );
   animation: dividerShine 2s infinite;
   will-change: transform;

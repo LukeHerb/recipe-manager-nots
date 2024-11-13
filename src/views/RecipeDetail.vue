@@ -50,6 +50,11 @@
             @deleted="handleRecipeDeleted"
             :images="recipe.imageFileNames"
           />
+          <SaveButton
+            v-if="!isCreator"
+            :recipeId="recipe.id"
+            :userId="currentUser?.username"
+          />
         </div>
 
         <!-- Recipe Content -->
@@ -138,6 +143,7 @@ import Toast from 'primevue/toast'
 import { useToast } from 'primevue/usetoast'
 import RecipeReview from '../components/recipe/RecipeReview.vue'
 import EditButton from '../components/button/EditButton.vue'
+import SaveButton from '../components/button/SaveButton.vue'
 
 // Type definitions
 interface Review {
