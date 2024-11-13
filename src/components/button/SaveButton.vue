@@ -11,70 +11,60 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import Button from 'primevue/button'
+import { generateClient } from 'aws-amplify/data'
+import { type Schema } from '../../../amplify/data/resource'
+const client = generateClient<Schema>()
 
 const props = defineProps<{
   recipeId: string
   userId: string
+  savedBy: Array<string>
 }>()
 
 const isSaved = ref(false)
 
-// const client = generateClient<Schema>()
+async function handleSave() {
+  // If the recipe is already saved, remove the user id from the savedBy array
+  if (isSaved.value) {
+    const recipe = {
+      id: props.recipeId,
+      savedBy: props.savedBy.filter((id) => id !== props.userId),
+    }
+    await client.models.Recipe.update(recipe)
+    isSaved.value = !isSaved.value
+    console.log('recipe unsaved')
+    console.log(recipe)
+    return
+  }
 
-// async function saveRecipe(userId, recipeId) {
-//   try {
-//     // Fetch the current user to access savedRecipes
-//     const { data: user, errors: userErrors } = await client.models.User.get({
-//       id: userId,
-//     })
-
-//     if (userErrors) {
-//       console.error('Error fetching user:', userErrors)
-//       return
-//     }
-
-//     // Check if the recipe is already saved
-//     const isRecipeSaved = user.savedRecipes.some(
-//       (savedRecipe) => savedRecipe.id === recipeId
-//     )
-
-//     if (!isRecipeSaved) {
-//       // If not saved, add the recipe to savedRecipes
-//       const updatedUser = {
-//         ...user,
-//         savedRecipes: [...user.savedRecipes, { id: recipeId }], // Adding recipe reference
-//       }
-
-//       // Update the user with the modified savedRecipes array
-//       const { data: updatedUserData, errors: updateErrors } =
-//         await client.models.User.update(updatedUser)
-
-//       if (updateErrors) {
-//         console.error('Error updating user:', updateErrors)
-//       } else {
-//         console.log('Recipe saved successfully:', updatedUserData)
-//       }
-//     } else {
-//       console.log('Recipe is already saved.')
-//     }
-//   } catch (error) {
-//     console.error('Error in saveRecipe function:', error)
-//   }
-// }
-
-// async function handleSave() {
-//   const success = await saveRecipe(props.userId, props.recipeId)
-//   if (success) {
-//     isSaved.value = !isSaved.value
-//   }
-// }
-
-const handleSave = () => {
-  console.log(`recipe id: ${props.recipeId} saved by user id: ${props.userId}`)
+  // update the recipe to include the user id in the savedBy array
+  const recipe = {
+    id: props.recipeId,
+    savedBy: props.userId,
+  }
+  await client.models.Recipe.update(recipe)
   isSaved.value = !isSaved.value
+
+  console.log('recipe saved')
+  console.log(recipe)
 }
+
+onMounted(async () => {
+  try {
+    // Fetch the current recipe
+    const response = await client.models.Recipe.list({
+      filter: { id: { eq: props.recipeId } },
+    })
+    const recipe = response.data[0]
+
+    // Check if the user has saved the recipe
+    isSaved.value = recipe.savedBy.includes(props.userId)
+  } catch (error) {
+    console.error(error)
+  }
+})
 </script>
 
 <style scoped>

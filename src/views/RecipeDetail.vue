@@ -54,6 +54,7 @@
             v-if="!isCreator"
             :recipeId="recipe.id"
             :userId="currentUser?.username"
+            :savedBy="recipe.savedBy"
           />
         </div>
 
@@ -177,6 +178,7 @@ interface Recipe {
   reviews?: Review[]
   averageRating?: number
   numReviews?: number
+  savedBy?: string[]
 }
 
 interface CurrentUser {
@@ -241,6 +243,7 @@ async function fetchRecipe() {
       id: route.params.id as string,
     })
     if (response.data) {
+      console.log('Recipe data:', response.data)
       // Create a new Recipe object with the response data
       const recipeData: Recipe = {
         id: response.data.id,
@@ -260,6 +263,7 @@ async function fetchRecipe() {
         reviews: [],
         averageRating: response.data.averageRating || 0,
         numReviews: response.data.numReviews || 0,
+        savedBy: response.data.savedBy || [],
       }
 
       // Fetch reviews if they exist

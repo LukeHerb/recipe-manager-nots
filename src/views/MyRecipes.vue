@@ -337,11 +337,46 @@ async function loadMoreCreatedRecipes() {
 // Note: This is a placeholder for future implementation
 // The backend schema would need to be updated to support saved recipes
 async function fetchSavedRecipes(nextToken: string | null = null) {
-  // This would be implemented when the backend supports saved recipes
-  // For now, we'll keep an empty array
-  savedRecipes.value = []
-  hasMoreSavedRecipes.value = false
-  nextTokenSaved.value = null
+  try {
+    const response = await client.models.Recipe.list({
+      filter: { savedBy: { contains: currentUser.value?.username } },
+      limit: ITEMS_PER_PAGE,
+      nextToken: nextToken,
+    })
+    if (response.data) {
+      // Process recipe data
+      const recipes = await Promise.all(
+        response.data.map(async (recipe) => {
+          const processedRecipe: ExtendedRecipe = {
+            ...recipe,
+            imageLinks: [], // Initialize with empty array
+            hasLoadedImages: false, // Initialize as false
+            averageRating: recipe.averageRating || 0,
+            numReviews: recipe.numReviews || 0,
+          }
+          await getImages(processedRecipe)
+          return processedRecipe
+        })
+      )
+      // Update state
+      if (nextToken) {
+        savedRecipes.value = [...savedRecipes.value, ...recipes]
+      } else {
+        savedRecipes.value = recipes
+      }
+      // Update pagination state
+      nextTokenSaved.value = response.nextToken
+      hasMoreSavedRecipes.value = !!response.nextToken
+    }
+  } catch (error) {
+    console.error('Error fetching saved recipes:', error)
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'Failed to load your saved recipes',
+      life: 3000,
+    })
+  }
 }
 
 // Load more saved recipes
