@@ -39,8 +39,10 @@ const schema = a.schema({
   SavedRecipe: a
     .model({
       id: a.id(),
-      userId: a.belongsTo('User', 'userId'), // Reference to the User model
-      recipeId: a.belongsTo('Recipe', 'recipeId'), // Reference to the Recipe model
+      userId: a.string(), // Foreign key to reference User
+      recipeId: a.string(), // Foreign key to reference Recipe
+      user: a.belongsTo('User', 'userId'), // Relationship to User
+      recipe: a.belongsTo('Recipe', 'recipeId'), // Relationship to Recipe
     })
     .authorization((allow) => [allow.authenticated()]),
 
@@ -54,9 +56,7 @@ const schema = a.schema({
       createdBy: a.string(),
       owner: a.string(),
     })
-    .authorization((allow) => [
-      allow.authenticated(), // All authenticated users can read.
-    ]),
+    .authorization((allow) => [allow.authenticated()]),
 })
 
 export type Schema = ClientSchema<typeof schema>
