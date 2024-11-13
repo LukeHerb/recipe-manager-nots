@@ -7,15 +7,6 @@ specifies that any user authenticated via an API key can "create", "read",
 "update", and "delete" any "Todo" records.
 =========================================================================*/
 const schema = a.schema({
-  User: a
-    .model({
-      id: a.id(),
-      username: a.string(),
-      email: a.string(),
-      savedRecipes: a.hasMany('SavedRecipe', 'userId'), // Link to SavedRecipe join model
-    })
-    .authorization((allow) => [allow.authenticated()]),
-
   Recipe: a
     .model({
       id: a.id(),
@@ -35,28 +26,19 @@ const schema = a.schema({
       reviews: a.hasMany('Review', 'recipeId'), // Define relationship
     })
     .authorization((allow) => [allow.authenticated()]),
-
-  SavedRecipe: a
-    .model({
-      id: a.id(),
-      userId: a.string(), // Foreign key to reference User
-      recipeId: a.string(), // Foreign key to reference Recipe
-      user: a.belongsTo('User', 'userId'), // Relationship to User
-      recipe: a.belongsTo('Recipe', 'recipeId'), // Relationship to Recipe
-    })
-    .authorization((allow) => [allow.authenticated()]),
-
   Review: a
     .model({
       id: a.id(),
       reviewStars: a.integer(),
       reviewText: a.string(),
-      recipeId: a.string(), // Foreign key to reference Recipe
-      recipe: a.belongsTo('Recipe', 'recipeId'), // Define relationship back to Recipe
+      recipeId: a.string(), // Foreign key to reference Todo
+      recipe: a.belongsTo('Recipe', 'recipeId'), // Define relationship back to Todo
       createdBy: a.string(),
       owner: a.string(),
     })
-    .authorization((allow) => [allow.authenticated()]),
+    .authorization((allow) => [
+      allow.authenticated(), // All authenticated users can read.
+    ]),
 })
 
 export type Schema = ClientSchema<typeof schema>
