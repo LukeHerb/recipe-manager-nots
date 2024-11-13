@@ -1,5 +1,6 @@
 <template>
-  <div class="filter-panel w-full bg-[#ebe7e4] rounded-xl shadow-md p-6 border-2 border-[#bca067]/20">
+  <!-- Main filter panel container with updated background color and border -->
+  <div class="filter-panel w-full bg-[#ebe7e4] rounded-xl shadow-md p-6 border-2 border-[#bca067]">
     <div class="flex flex-col gap-4">
       <!-- Course Selection Filter -->
       <div class="filter-section">
@@ -135,19 +136,10 @@ const difficultyOptions: FilterOption[] = [
 
 // Available time options for filtering
 const timeOptions = [
-  '15 minutes',
-  '30 minutes',
-  '45 minutes',
-  '1 hour',
-  '1 hour 30 minutes',
-  '2 hours',
-  '2 hours 30 minutes',
-  '3 hours',
-  '4 hours',
-  '5 hours',
-  '6 hours',
-  '7 hours',
-  '8 hours'
+  '15 minutes', '30 minutes', '45 minutes',
+  '1 hour', '1 hour 30 minutes', '2 hours',
+  '2 hours 30 minutes', '3 hours', '4 hours',
+  '5 hours', '6 hours', '7 hours', '8 hours'
 ]
 
 // Initialize reactive filter state
@@ -260,14 +252,33 @@ const clearAllFilters = () => {
   box-shadow: 0 0 0 1px #bca067;
 }
 
+:deep(.p-multiselect-panel) {
+  border-color: #bca067;
+}
+
 :deep(.p-multiselect-item.p-highlight) {
   background-color: rgba(188, 160, 103, 0.1) !important;
   color: #bca067 !important;
 }
 
-:deep(.p-select:not(.p-disabled).p-focus) {
+/* Select component styling */
+:deep(.p-dropdown) {
+  width: 100%;
+  border-color: rgba(188, 160, 103, 0.3);
+}
+
+:deep(.p-dropdown:not(.p-disabled).p-focus) {
   border-color: #bca067;
   box-shadow: 0 0 0 1px #bca067;
+}
+
+:deep(.p-dropdown-panel) {
+  border-color: #bca067;
+}
+
+:deep(.p-dropdown-item.p-highlight) {
+  background-color: rgba(188, 160, 103, 0.1) !important;
+  color: #bca067 !important;
 }
 
 /* Tag styling */
@@ -342,34 +353,31 @@ const clearAllFilters = () => {
   color: #bca067 !important;
 }
 
-/* Dropdown customization */
-:deep(.p-dropdown-panel) {
-  border-color: #bca067;
-}
-
-:deep(.p-dropdown-item.p-highlight) {
-  background-color: rgba(188, 160, 103, 0.1) !important;
-  color: #bca067 !important;
-}
-
-/* MultiSelect panel */
-:deep(.p-multiselect-panel) {
-  border-color: #bca067;
-}
-
-/* Hover states */
-:deep(.p-dropdown-item:hover),
-:deep(.p-multiselect-item:hover) {
-  background-color: rgba(188, 160, 103, 0.1) !important;
-  color: #bca067 !important;
-}
-
-/* Transition effects */
+/* Animations */
 .filter-panel {
   transition: all 0.3s ease;
 }
 
 .filter-tags {
   transition: all 0.3s ease;
+}
+
+/* Accessibility - Reduce Motion */
+@media (prefers-reduced-motion: reduce) {
+  .filter-panel,
+  .filter-tags,
+  :deep(.p-tag),
+  :deep(.p-button) {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* Focus States */
+:deep(.p-button:focus),
+:deep(.p-multiselect:focus),
+:deep(.p-dropdown:focus) {
+  outline: 2px solid #bca067;
+  outline-offset: 2px;
 }
 </style>

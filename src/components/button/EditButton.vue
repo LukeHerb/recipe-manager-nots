@@ -2,41 +2,48 @@
   <div class="absolute top-4 right-4 z-50">
     <!-- Menu Trigger Button -->
     <Button
-        icon="fa-solid fa-ellipsis-vertical"
-        @click="menu.toggle($event)"
-        class="p-button-rounded p-button-text bg-white shadow-lg"
-        style="width: 2.75rem; height: 2.75rem;"
-        aria-label="Menu"
+      icon="fa-solid fa-ellipsis-vertical"
+      @click="menu.toggle($event)"
+      class="p-button-rounded p-button-text bg-white shadow-lg"
+      style="width: 2.75rem; height: 2.75rem"
+      aria-label="Menu"
     />
     <Menu ref="menu" :model="menuItems" :popup="true" />
 
     <!-- Delete Confirmation Dialog -->
     <Dialog
-        v-model:visible="showDeleteDialog"
-        modal
-        header="Delete Recipe"
-        :style="{ width: '500px' }"
-        :closable="false"
+      v-model:visible="showDeleteDialog"
+      modal
+      header="Delete Recipe"
+      :style="{ width: '500px' }"
+      :closable="false"
     >
       <div class="confirmation-content p-4">
         <div class="flex items-start mb-4">
-          <i class="fa-solid fa-triangle-exclamation text-2xl text-yellow-500 mr-3 mt-1"></i>
+          <i
+            class="fa-solid fa-triangle-exclamation text-2xl text-yellow-500 mr-3 mt-1"
+          ></i>
           <div class="flex flex-col gap-2">
-            <span class="font-semibold text-lg">This action cannot be undone</span>
+            <span class="font-semibold text-lg"
+              >This action cannot be undone</span
+            >
             <p class="text-gray-600">
-              This will permanently delete the recipe "{{ recipeName }}" and all its associated reviews and images.
+              This will permanently delete the recipe "{{ recipeName }}" and all
+              its associated reviews and images.
             </p>
           </div>
         </div>
 
         <div class="mt-6">
           <label class="block text-sm font-medium text-gray-700 mb-2">
-            Please type <span class="font-mono bg-gray-100 px-2 py-1 rounded">delete</span> to confirm
+            Please type
+            <span class="font-mono bg-gray-100 px-2 py-1 rounded">delete</span>
+            to confirm
           </label>
           <InputText
-              v-model="deleteConfirmation"
-              class="w-full"
-              :class="{ 'p-invalid': showDeleteError }"
+            v-model="deleteConfirmation"
+            class="w-full"
+            :class="{ 'p-invalid': showDeleteError }"
           />
           <small v-if="showDeleteError" class="p-error block mt-1">
             Please type 'delete' to confirm
@@ -46,19 +53,19 @@
       <template #footer>
         <div class="flex justify-end gap-3">
           <Button
-              label="Cancel"
-              icon="fa-solid fa-times"
-              @click="cancelDelete"
-              class="p-button-outlined"
-              :disabled="deleting"
+            label="Cancel"
+            icon="fa-solid fa-times"
+            @click="cancelDelete"
+            class="p-button-outlined"
+            :disabled="deleting"
           />
           <Button
-              label="Delete Recipe"
-              icon="fa-solid fa-trash"
-              @click="confirmDelete"
-              class="p-button-danger"
-              :loading="deleting"
-              :disabled="deleteConfirmation !== 'delete'"
+            label="Delete Recipe"
+            icon="fa-solid fa-trash"
+            @click="confirmDelete"
+            class="p-button-danger"
+            :loading="deleting"
+            :disabled="deleteConfirmation !== 'delete'"
           />
         </div>
       </template>
@@ -76,10 +83,12 @@ import InputText from 'primevue/inputtext'
 import { useToast } from 'primevue/usetoast'
 import { generateClient } from 'aws-amplify/data'
 import type { Schema } from '../../../amplify/data/resource'
+import { remove } from 'aws-amplify/storage'
 
 const props = defineProps<{
   recipeId: string
   recipeName: string
+  images: string[]
 }>()
 
 const emit = defineEmits<{
@@ -103,7 +112,7 @@ const menuItems = ref([
   {
     label: 'Edit Recipe',
     icon: 'fa-solid fa-pen-to-square',
-    command: () => router.push(`/recipe/${props.recipeId}/edit`)
+    command: () => router.push(`/recipe/${props.recipeId}/edit`),
   },
   {
     label: 'Delete Recipe',
@@ -113,8 +122,8 @@ const menuItems = ref([
       showDeleteDialog.value = true
       deleteConfirmation.value = ''
       showDeleteError.value = false
-    }
-  }
+    },
+  },
 ])
 
 // Delete handlers
@@ -135,16 +144,21 @@ async function confirmDelete() {
     // Delete the recipe
     await client.models.Recipe.delete({ id: props.recipeId })
 
+    // Delete associated images
+    await remove({
+      path: `recipe-manager/images/${props.recipeId}/${props.images[0]}`,
+    })
+
     // Delete associated reviews
     const reviewsResponse = await client.models.Review.list({
-      filter: { recipeId: { eq: props.recipeId } }
+      filter: { recipeId: { eq: props.recipeId } },
     })
 
     if (reviewsResponse.data.length > 0) {
       await Promise.all(
-          reviewsResponse.data.map(review =>
-              client.models.Review.delete({ id: review.id })
-          )
+        reviewsResponse.data.map((review) =>
+          client.models.Review.delete({ id: review.id })
+        )
       )
     }
 
@@ -152,7 +166,7 @@ async function confirmDelete() {
       severity: 'success',
       summary: 'Success',
       detail: 'Recipe deleted successfully',
-      life: 3000
+      life: 3000,
     })
 
     emit('deleted')
@@ -163,7 +177,7 @@ async function confirmDelete() {
       severity: 'error',
       summary: 'Error',
       detail: 'Failed to delete recipe',
-      life: 3000
+      life: 3000,
     })
   } finally {
     deleting.value = false
@@ -236,7 +250,8 @@ async function confirmDelete() {
 
 :deep(.p-dialog) {
   border-radius: 1rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   max-width: 90vw;
 }
 

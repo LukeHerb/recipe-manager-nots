@@ -1,9 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Recipes from '../components/Recipes.vue'
-import NewRecipe from '../components/NewRecipe.vue'
-import RecipeDetail from '../components/RecipeDetail.vue'
-import MyRecipes from '../components/MyRecipes.vue'
-import RecipeEdit from '../components/RecipeEdit.vue'
+import Recipes from '../views/Recipes.vue'
+import NewRecipe from '../views/NewRecipe.vue'
+import RecipeDetail from '../views/RecipeDetail.vue'
+import MyRecipes from '../views/MyRecipes.vue'
+import RecipeEdit from '../views/RecipeEdit.vue'
 
 const routes = [
   { path: '/', component: Recipes, name: 'Recipes' },

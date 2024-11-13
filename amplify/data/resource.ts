@@ -21,6 +21,8 @@ const schema = a.schema({
       instructions: a.string().array(),
       owner: a.string(),
       imageFileNames: a.string().array(),
+      averageRating: a.integer(),
+      numReviews: a.integer(),
       reviews: a.hasMany('Review', 'recipeId'), // Define relationship
     })
     .authorization((allow) => [allow.authenticated()]),

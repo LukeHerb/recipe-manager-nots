@@ -1,6 +1,8 @@
+<!-- SearchBar.vue -->
 <template>
   <div class="w-full">
-    <div class="flex flex-col gap-4 bg-[#ebe7e4] p-6 rounded-xl shadow-md border-2 border-[#bca067]/20">
+    <!-- Main container with updated background color and border -->
+    <div class="flex flex-col gap-4 bg-[#ebe7e4] p-6 rounded-xl shadow-md border-2 border-[#bca067]">
       <!-- Main Search Bar with Filter Toggle -->
       <div class="flex gap-4">
         <FloatLabel variant="on" class="w-full">
@@ -290,8 +292,6 @@ const clearFilters = () => {
 
 /* Container styling */
 .w-full > div {
-  background-color: #ebe7e4;
-  border: 2px solid rgba(188, 160, 103, 0.2);
   transition: all 0.3s ease;
 }
 
