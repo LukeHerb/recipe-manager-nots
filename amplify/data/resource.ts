@@ -24,7 +24,6 @@ const schema = a.schema({
       averageRating: a.integer(),
       numReviews: a.integer(),
       reviews: a.hasMany('Review', 'recipeId'), // Define relationship
-      savedBy: a.string().array(),
     })
     .authorization((allow) => [allow.authenticated()]),
   Review: a
