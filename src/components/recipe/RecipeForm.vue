@@ -1,4 +1,5 @@
 <template>
+  <Toast />
   <div class="flex flex-col gap-6 bg-white p-8 pb-2 rounded-xl">
     <!-- Image Upload Section -->
     <div class="flex flex-col gap-4">

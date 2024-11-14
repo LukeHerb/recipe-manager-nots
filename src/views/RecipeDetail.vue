@@ -50,6 +50,18 @@
             @deleted="handleRecipeDeleted"
             :images="recipe.imageFileNames"
           />
+          <div
+            class="flex gap-4 top-4 absolute place-self-end right-4"
+            v-if="!isCreator"
+          >
+            <SaveButton
+              v-if="!isCreator"
+              :recipeId="recipe.id"
+              :userId="currentUser?.username"
+              :savedBy="recipe.savedBy"
+            />
+            <ShareButton v-if="!isCreator" :recipeName="recipe.name" />
+          </div>
         </div>
 
         <!-- Recipe Content -->
@@ -138,6 +150,8 @@ import Toast from 'primevue/toast'
 import { useToast } from 'primevue/usetoast'
 import RecipeReview from '../components/recipe/RecipeReview.vue'
 import EditButton from '../components/button/EditButton.vue'
+import SaveButton from '../components/button/SaveButton.vue'
+import ShareButton from '../components/button/ShareButton.vue'
 
 // Type definitions
 interface Review {
@@ -171,6 +185,7 @@ interface Recipe {
   reviews?: Review[]
   averageRating?: number
   numReviews?: number
+  savedBy?: string[]
 }
 
 interface CurrentUser {
@@ -235,6 +250,7 @@ async function fetchRecipe() {
       id: route.params.id as string,
     })
     if (response.data) {
+      console.log('Recipe data:', response.data)
       // Create a new Recipe object with the response data
       const recipeData: Recipe = {
         id: response.data.id,
@@ -254,6 +270,7 @@ async function fetchRecipe() {
         reviews: [],
         averageRating: response.data.averageRating || 0,
         numReviews: response.data.numReviews || 0,
+        savedBy: response.data.savedBy || [],
       }
 
       // Fetch reviews if they exist
