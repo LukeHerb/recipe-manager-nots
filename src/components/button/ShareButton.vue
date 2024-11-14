@@ -1,70 +1,44 @@
 <template>
   <div class="z-50">
     <Button
-      :icon="isSaved ? 'fa-solid fa-bookmark' : 'fa-regular fa-bookmark'"
+      icon="fa-solid fa-arrow-up-from-bracket"
       class="p-button-rounded p-button-text bg-white shadow-lg"
       style="width: 2.75rem; height: 2.75rem"
       aria-label="Save"
-      @click="handleSave"
+      @click="shareRecipe"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import Button from 'primevue/button'
-import { generateClient } from 'aws-amplify/data'
-import { type Schema } from '../../../amplify/data/resource'
-const client = generateClient<Schema>()
 
 const props = defineProps<{
-  recipeId: string
-  userId: string
-  savedBy: Array<string>
+  recipeName: string
 }>()
 
-const isSaved = ref(false)
-
-async function handleSave() {
-  // If the recipe is already saved, remove the user id from the savedBy array
-  if (isSaved.value) {
-    const recipe = {
-      id: props.recipeId,
-      savedBy: props.savedBy.filter((id) => id !== props.userId),
-    }
-    await client.models.Recipe.update(recipe)
-    isSaved.value = !isSaved.value
-    console.log('recipe unsaved')
-    console.log(recipe)
-    return
+// Share recipe method
+function shareRecipe() {
+  const shareData = {
+    title: `Check out this recipe: ${props.recipeName}`,
+    text: `I found a great recipe on Recipe Manager!`,
+    url: window.location.href, // Share the current page URL
   }
 
-  // update the recipe to include the user id in the savedBy array
-  const recipe = {
-    id: props.recipeId,
-    savedBy: props.userId,
+  if (navigator.share) {
+    navigator
+      .share(shareData)
+      .then(() => console.log('Recipe shared successfully'))
+      .catch((error) => console.error('Error sharing recipe:', error))
+  } else {
+    // Fallback: copy link to clipboard
+    navigator.clipboard
+      .writeText(window.location.href)
+      .then(() => console.log('Link copied to clipboard'))
+      .catch((error) => console.error('Failed to copy link:', error))
   }
-  await client.models.Recipe.update(recipe)
-  isSaved.value = !isSaved.value
-
-  console.log('recipe saved')
-  console.log(recipe)
 }
-
-onMounted(async () => {
-  try {
-    // Fetch the current recipe
-    const response = await client.models.Recipe.list({
-      filter: { id: { eq: props.recipeId } },
-    })
-    const recipe = response.data[0]
-
-    // Check if the user has saved the recipe
-    isSaved.value = recipe.savedBy.includes(props.userId)
-  } catch (error) {
-    console.error(error)
-  }
-})
 </script>
 
 <style scoped>

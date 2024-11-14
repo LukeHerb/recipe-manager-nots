@@ -50,12 +50,18 @@
             @deleted="handleRecipeDeleted"
             :images="recipe.imageFileNames"
           />
-          <SaveButton
+          <div
+            class="flex gap-4 top-4 absolute place-self-end right-4"
             v-if="!isCreator"
-            :recipeId="recipe.id"
-            :userId="currentUser?.username"
-            :savedBy="recipe.savedBy"
-          />
+          >
+            <SaveButton
+              v-if="!isCreator"
+              :recipeId="recipe.id"
+              :userId="currentUser?.username"
+              :savedBy="recipe.savedBy"
+            />
+            <ShareButton v-if="!isCreator" :recipeName="recipe.name" />
+          </div>
         </div>
 
         <!-- Recipe Content -->
@@ -145,6 +151,7 @@ import { useToast } from 'primevue/usetoast'
 import RecipeReview from '../components/recipe/RecipeReview.vue'
 import EditButton from '../components/button/EditButton.vue'
 import SaveButton from '../components/button/SaveButton.vue'
+import ShareButton from '../components/button/ShareButton.vue'
 
 // Type definitions
 interface Review {
