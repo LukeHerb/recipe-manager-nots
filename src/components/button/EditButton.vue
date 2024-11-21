@@ -1,31 +1,31 @@
 <template>
-  <div class="absolute top-4 right-4 z-50">
+  <div class="z-50">
     <!-- Menu Trigger Button -->
     <Button
-      icon="fa-solid fa-ellipsis-vertical"
-      @click="menu.toggle($event)"
-      class="p-button-rounded p-button-text bg-white shadow-lg"
-      style="width: 2.75rem; height: 2.75rem"
-      aria-label="Menu"
+        icon="fa-solid fa-ellipsis-vertical"
+        @click="menu.toggle($event)"
+        class="p-button-rounded p-button-text bg-white shadow-lg"
+        style="width: 2.75rem; height: 2.75rem"
+        aria-label="Menu"
     />
     <Menu ref="menu" :model="menuItems" :popup="true" />
 
     <!-- Delete Confirmation Dialog -->
     <Dialog
-      v-model:visible="showDeleteDialog"
-      modal
-      header="Delete Recipe"
-      :style="{ width: '500px' }"
-      :closable="false"
+        v-model:visible="showDeleteDialog"
+        modal
+        header="Delete Recipe"
+        :style="{ width: '500px' }"
+        :closable="false"
     >
       <div class="confirmation-content p-4">
         <div class="flex items-start mb-4">
           <i
-            class="fa-solid fa-triangle-exclamation text-2xl text-yellow-500 mr-3 mt-1"
+              class="fa-solid fa-triangle-exclamation text-2xl text-yellow-500 mr-3 mt-1"
           ></i>
           <div class="flex flex-col gap-2">
             <span class="font-semibold text-lg"
-              >This action cannot be undone</span
+            >This action cannot be undone</span
             >
             <p class="text-gray-600">
               This will permanently delete the recipe "{{ recipeName }}" and all
@@ -41,9 +41,9 @@
             to confirm
           </label>
           <InputText
-            v-model="deleteConfirmation"
-            class="w-full"
-            :class="{ 'p-invalid': showDeleteError }"
+              v-model="deleteConfirmation"
+              class="w-full"
+              :class="{ 'p-invalid': showDeleteError }"
           />
           <small v-if="showDeleteError" class="p-error block mt-1">
             Please type 'delete' to confirm
@@ -53,19 +53,19 @@
       <template #footer>
         <div class="flex justify-end gap-3">
           <Button
-            label="Cancel"
-            icon="fa-solid fa-times"
-            @click="cancelDelete"
-            class="p-button-outlined"
-            :disabled="deleting"
+              label="Cancel"
+              icon="fa-solid fa-times"
+              @click="cancelDelete"
+              class="p-button-outlined"
+              :disabled="deleting"
           />
           <Button
-            label="Delete Recipe"
-            icon="fa-solid fa-trash"
-            @click="confirmDelete"
-            class="p-button-danger"
-            :loading="deleting"
-            :disabled="deleteConfirmation !== 'delete'"
+              label="Delete Recipe"
+              icon="fa-solid fa-trash"
+              @click="confirmDelete"
+              class="p-button-danger"
+              :loading="deleting"
+              :disabled="deleteConfirmation !== 'delete'"
           />
         </div>
       </template>
