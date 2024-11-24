@@ -1,6 +1,6 @@
 <template>
   <main
-    class="flex flex-col m-auto justify-center content-center items-center p-8 md:py-12"
+      class="flex flex-col m-auto justify-center content-center items-center p-8 md:py-12"
   >
     <Toast />
     <!-- Loading State -->
@@ -24,43 +24,82 @@
     <div v-else class="w-full max-w-4xl">
       <!-- Recipe Card -->
       <div
-        class="bg-white rounded-xl shadow-lg overflow-hidden border-2 border-[#bca067]/20"
+          class="bg-white rounded-xl shadow-lg overflow-hidden border-2 border-[#bca067]/20"
       >
         <!-- Image Section with Options Menu -->
         <div class="relative h-[500px] w-full">
           <!-- Loading State for Image -->
           <div
-            v-if="!recipe.hasLoadedImages"
-            class="w-full h-full bg-gray-200 animate-pulse"
+              v-if="!recipe.hasLoadedImages"
+              class="w-full h-full bg-gray-200 animate-pulse"
           ></div>
 
           <!-- Recipe Image -->
           <img
-            v-else-if="recipe.imageLinks && recipe.imageLinks[0]"
-            :src="recipe.imageLinks[0]"
-            :alt="recipe.name"
-            class="w-full h-full object-cover"
+              v-else-if="recipe.imageLinks && recipe.imageLinks[0]"
+              :src="recipe.imageLinks[0]"
+              :alt="recipe.name"
+              class="w-full h-full object-cover"
           />
+          <!-- Action Buttons Container -->
+          <div class="absolute top-4 right-4">
+            <!-- Creator's Actions -->
+            <div v-if="isCreator" class="flex items-center gap-3 relative">
+              <div class="recipe-action-button">
+                <PrintButton
+                    :name="recipe.name"
+                    :description="recipe.description"
+                    :createdBy="recipe.createdBy"
+                    :course="recipe.course"
+                    :time="recipe.time"
+                    :numServings="recipe.numServings"
+                    :difficulty="recipe.difficulty"
+                    :ingredients="recipe.ingredients"
+                    :instructions="recipe.instructions"
+                    :createdAt="recipe.createdAt"
+                />
+              </div>
+              <div class="recipe-action-button">
+                <ShareButton :recipeName="recipe.name" />
+              </div>
+              <div class="recipe-action-button">
+                <EditButton
+                    :recipe-id="recipe.id"
+                    :recipe-name="recipe.name"
+                    @deleted="handleRecipeDeleted"
+                    :images="recipe.imageFileNames"
+                />
+              </div>
+            </div>
 
-          <!-- Edit Button Component -->
-          <EditButton
-            v-if="isCreator"
-            :recipe-id="recipe.id"
-            :recipe-name="recipe.name"
-            @deleted="handleRecipeDeleted"
-            :images="recipe.imageFileNames"
-          />
-          <div
-            class="flex gap-4 top-4 absolute place-self-end right-4"
-            v-if="!isCreator"
-          >
-            <SaveButton
-              v-if="!isCreator"
-              :recipeId="recipe.id"
-              :userId="currentUser?.username"
-              :savedBy="recipe.savedBy"
-            />
-            <ShareButton v-if="!isCreator" :recipeName="recipe.name" />
+            <!-- Other Users' Actions -->
+            <div v-else class="flex items-center gap-3">
+              <div class="recipe-action-button">
+                <SaveButton
+                    :recipeId="recipe.id"
+                    :userId="currentUser?.username"
+                    :savedBy="recipe.savedBy"
+                />
+              </div>
+              <div class="recipe-action-button">
+                <PrintButton
+                    :name="recipe.name"
+                    :description="recipe.description"
+                    :createdBy="recipe.createdBy"
+                    :course="recipe.course"
+                    :time="recipe.time"
+                    :numServings="recipe.numServings"
+                    :difficulty="recipe.difficulty"
+                    :ingredients="recipe.ingredients"
+                    :instructions="recipe.instructions"
+                    :createdAt="recipe.createdAt"
+                />
+              </div>
+              <div class="recipe-action-button">
+                <ShareButton :recipeName="recipe.name" />
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -102,9 +141,9 @@
             <h2 class="text-2xl font-playfair mb-4">Ingredients</h2>
             <ul class="list-disc list-inside space-y-2">
               <li
-                v-for="ingredient in recipe.ingredients"
-                :key="ingredient"
-                class="text-gray-700"
+                  v-for="ingredient in recipe.ingredients"
+                  :key="ingredient"
+                  class="text-gray-700"
               >
                 {{ ingredient }}
               </li>
@@ -116,9 +155,9 @@
             <h2 class="text-2xl font-playfair mb-4">Instructions</h2>
             <ol class="list-decimal list-inside space-y-4">
               <li
-                v-for="(instruction, index) in recipe.instructions"
-                :key="index"
-                class="text-gray-700 pl-2"
+                  v-for="(instruction, index) in recipe.instructions"
+                  :key="index"
+                  class="text-gray-700 pl-2"
               >
                 {{ instruction }}
               </li>
@@ -130,8 +169,8 @@
       <!-- Reviews Section -->
       <div v-if="!isCreator" class="mt-8">
         <RecipeReview
-          :recipe="{ data: recipe, reviews: recipe.reviews || [] }"
-          :current-user="currentUser"
+            :recipe="{ data: recipe, reviews: recipe.reviews || [] }"
+            :current-user="currentUser"
         />
       </div>
     </div>
@@ -152,6 +191,8 @@ import RecipeReview from '../components/recipe/RecipeReview.vue'
 import EditButton from '../components/button/EditButton.vue'
 import SaveButton from '../components/button/SaveButton.vue'
 import ShareButton from '../components/button/ShareButton.vue'
+import PrintButton from '../components/button/PrintButton.vue'
+
 
 // Type definitions
 interface Review {
@@ -232,7 +273,7 @@ async function getImages(recipeData: Recipe) {
       })
       const resolvedLinks = await Promise.all(imagePromises)
       recipeData.imageLinks = resolvedLinks.filter(
-        (link): link is string => link !== null
+          (link): link is string => link !== null
       )
       recipeData.hasLoadedImages = recipeData.imageLinks.length > 0
     } catch (error) {
@@ -348,5 +389,46 @@ onMounted(async () => {
 /* Font styling */
 .font-playfair {
   font-family: 'Playfair Display', serif;
+}
+
+/* Button container and alignment */
+.recipe-action-button {
+  width: 2.75rem;
+  height: 2.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:deep(.recipe-action-button .p-button) {
+  width: 2.75rem !important;
+  height: 2.75rem !important;
+}
+
+:deep(.recipe-action-button .p-button-rounded) {
+  border-radius: 50%;
+}
+
+/* Button hover effects */
+:deep(.recipe-action-button .p-button) {
+  transition: all 0.2s ease-in-out;
+}
+
+:deep(.recipe-action-button .p-button:hover) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .recipe-action-button {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  :deep(.recipe-action-button .p-button) {
+    width: 2.25rem !important;
+    height: 2.25rem !important;
+  }
 }
 </style>

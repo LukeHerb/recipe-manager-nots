@@ -24,6 +24,7 @@ coverage
 *.njsproj
 *.sln
 *.sw?
+Documentation/
 
 # Environment files
 .env
@@ -91,4 +92,4 @@ package-lock.json
 !.yarn/plugins
 !.yarn/releases
 !.yarn/sdks
-!.yarn/versions
+!.yarn/versions!/.gitignore
