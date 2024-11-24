@@ -14,14 +14,35 @@
       <SearchBar @search="handleSearch" class="w-full" />
     </div>
 
+    <Select
+      v-model="sortCriteria"
+      :options="['Highest Rated', 'Lowest Rated', 'Newest', 'Oldest']"
+      placeholder="Select Course"
+      multiple
+      class="mb-4 ml-auto"
+    />
+
     <!-- Recipe Grid -->
-    <ul class="grid gap-6 grid-cols-2 w-11/12 md:w-full">
+    <ul
+      v-if="recipes.length > 0"
+      class="grid gap-6 grid-cols-2 w-11/12 md:w-full"
+    >
       <RecipeCard
-        v-for="recipe in filteredRecipes"
+        v-for="recipe in sortedRecipes"
         :key="recipe.id ?? ''"
         :recipe="recipe"
       />
     </ul>
+
+    <!-- No Recipes Found -->
+    <div
+      v-else
+      class="flex flex-col items-center justify-center w-11/12 md:w-full"
+    >
+      <h2 class="text-2xl font-bold text-center mb-4">
+        No recipes found. Try adjusting your search criteria.
+      </h2>
+    </div>
   </main>
 </template>
 
@@ -36,6 +57,7 @@ import SearchBar from '../components/search/SearchBar.vue'
 import RecipeCard from '../components/recipe/RecipeCard.vue'
 import HeroBanner from '../components/composables/HeroBanner.vue'
 import Toast from 'primevue/toast'
+import { Select } from 'primevue'
 
 // Initialize AWS client
 const client = generateClient<Schema>()
@@ -52,6 +74,7 @@ const searchCriteria = ref({
   includedIngredients: [],
   excludedIngredients: [],
 })
+const sortCriteria = ref('Highest Rated')
 const toast = useToast()
 
 // Function to handle scrolling to search bar
@@ -157,6 +180,32 @@ const filteredRecipes = computed(() => {
 
     return true
   })
+})
+
+// Computed property for sorted recipes
+const sortedRecipes = computed(() => {
+  const sorted = [...filteredRecipes.value]
+  switch (sortCriteria.value) {
+    case 'Highest Rated':
+      sorted.sort((a, b) => b.averageRating - a.averageRating)
+      break
+    case 'Lowest Rated':
+      sorted.sort((a, b) => a.averageRating - b.averageRating)
+      break
+    case 'Newest':
+      sorted.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
+      break
+    case 'Oldest':
+      sorted.sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      )
+      break
+  }
+  return sorted
 })
 
 // Search handler function
