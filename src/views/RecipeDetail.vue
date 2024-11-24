@@ -41,7 +41,6 @@
               :alt="recipe.name"
               class="w-full h-full object-cover"
           />
-
           <!-- Action Buttons Container -->
           <div class="absolute top-4 right-4">
             <!-- Creator's Actions -->
@@ -100,6 +99,7 @@
                 <ShareButton :recipeName="recipe.name" />
               </div>
             </div>
+
           </div>
         </div>
 
@@ -192,6 +192,7 @@ import EditButton from '../components/button/EditButton.vue'
 import SaveButton from '../components/button/SaveButton.vue'
 import ShareButton from '../components/button/ShareButton.vue'
 import PrintButton from '../components/button/PrintButton.vue'
+
 
 // Type definitions
 interface Review {
