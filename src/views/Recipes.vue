@@ -258,31 +258,33 @@ async function getImages(recipe: ExtendedRecipe) {
 // Recipe listing function with improved image loading
 async function listRecipes() {
   client.models.Recipe.observeQuery().subscribe({
-    next: async ({ items }) => {
-      // First update recipes without images
-      recipes.value = items.map((recipe) => ({
-        id: recipe.id ?? '',
-        createdBy: recipe.createdBy ?? '',
-        name: recipe.name ?? '',
-        description: recipe.description ?? '',
-        course: recipe.course ?? '',
-        time: recipe.time ?? '',
-        numServings: recipe.numServings ?? '',
-        difficulty: recipe.difficulty ?? '',
-        ingredients: recipe.ingredients ?? null,
-        instructions: recipe.instructions ?? null,
-        owner: recipe.owner ?? '',
-        imageFileNames: recipe.imageFileNames ?? null,
-        imageLinks: [],
-        hasLoadedImages: false,
-        createdAt: recipe.createdAt ?? '',
-        updatedAt: recipe.updatedAt ?? '',
-        averageRating: recipe.averageRating ?? 0,
-        numReviews: recipe.numReviews ?? 0,
-      }))
-      // Then load images in parallel
-      await Promise.all(recipes.value.map((recipe) => getImages(recipe)))
-    },
+    next: ({ items }) => console.log('Recipes observed:', items),
+    error: (err) => console.error('observeQuery error:', err), // Log errors
+    // next: async ({ items }) => {
+    //   // First update recipes without images
+    //   recipes.value = items.map((recipe) => ({
+    //     id: recipe.id ?? '',
+    //     createdBy: recipe.createdBy ?? '',
+    //     name: recipe.name ?? '',
+    //     description: recipe.description ?? '',
+    //     course: recipe.course ?? '',
+    //     time: recipe.time ?? '',
+    //     numServings: recipe.numServings ?? '',
+    //     difficulty: recipe.difficulty ?? '',
+    //     ingredients: recipe.ingredients ?? null,
+    //     instructions: recipe.instructions ?? null,
+    //     owner: recipe.owner ?? '',
+    //     imageFileNames: recipe.imageFileNames ?? null,
+    //     imageLinks: [],
+    //     hasLoadedImages: false,
+    //     createdAt: recipe.createdAt ?? '',
+    //     updatedAt: recipe.updatedAt ?? '',
+    //     averageRating: recipe.averageRating ?? 0,
+    //     numReviews: recipe.numReviews ?? 0,
+    //   }))
+    //   // Then load images in parallel
+    //   await Promise.all(recipes.value.map((recipe) => getImages(recipe)))
+    // },
   })
 }
 

@@ -28,7 +28,7 @@ const schema = a.schema({
     })
     .authorization((allow) => [
       allow.guest().to(['read']), // Guest users can read.
-      allow.authenticated().to(['create', 'update', 'delete']), // Authenticated users can create, update, delete.
+      allow.authenticated().to(['create', 'update', 'delete', 'read']), // Authenticated users can create, update, delete.
     ]),
   Review: a
     .model({
@@ -42,7 +42,7 @@ const schema = a.schema({
     })
     .authorization((allow) => [
       allow.guest().to(['read']), // Guest users can read.
-      allow.authenticated().to(['create', 'update', 'delete']), // Authenticated users can create, update, delete.
+      allow.authenticated().to(['create', 'update', 'delete', 'read']), // Authenticated users can create, update, delete.
     ]),
 })
 
