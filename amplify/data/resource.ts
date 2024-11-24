@@ -26,10 +26,7 @@ const schema = a.schema({
       savedBy: a.string().array(),
       reviews: a.hasMany('Review', 'recipeId'), // Define relationship
     })
-    .authorization((allow) => [
-      allow.guest().to(['read']), // Guest users can read.
-      allow.authenticated().to(['create', 'update', 'delete', 'read']), // Authenticated users can create, update, delete.
-    ]),
+    .authorization((allow) => [allow.authenticated()]),
   Review: a
     .model({
       id: a.id(),
@@ -40,10 +37,7 @@ const schema = a.schema({
       createdBy: a.string(),
       owner: a.string(),
     })
-    .authorization((allow) => [
-      allow.guest().to(['read']), // Guest users can read.
-      allow.authenticated().to(['create', 'update', 'delete', 'read']), // Authenticated users can create, update, delete.
-    ]),
+    .authorization((allow) => [allow.authenticated()]),
 })
 
 export type Schema = ClientSchema<typeof schema>
