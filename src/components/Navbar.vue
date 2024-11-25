@@ -5,26 +5,28 @@
       <!-- Logo and Home Link -->
       <router-link to="/" class="logo-container">
         <img
-            src="../assets/recipetutorial.svg"
-            alt="Recipe Tutorial Logo"
-            class="h-8 hover:scale-105 transition-transform duration-300"
+          src="../assets/recipetutorial.svg"
+          alt="Recipe Tutorial Logo"
+          class="h-8 hover:scale-105 transition-transform duration-300"
         />
       </router-link>
 
       <!-- Mobile Menu Button -->
       <button
-          class="mobile-menu-btn md:hidden"
-          @click="isMobileMenuOpen = !isMobileMenuOpen"
-          aria-label="Toggle menu"
+        class="mobile-menu-btn md:hidden"
+        @click="isMobileMenuOpen = !isMobileMenuOpen"
+        aria-label="Toggle menu"
       >
         <i
-            :class="['fa-solid', isMobileMenuOpen ? 'fa-times' : 'fa-bars']"
-            class="text-2xl text-gray-700 hover:text-gold transition-colors"
+          :class="['fa-solid', isMobileMenuOpen ? 'fa-times' : 'fa-bars']"
+          class="text-2xl text-gray-700 hover:text-gold transition-colors"
         ></i>
       </button>
 
       <!-- Desktop Navigation -->
-      <div class="hidden md:flex md:items-center md:justify-between md:flex-grow md:ml-8">
+      <div
+        class="hidden md:flex md:items-center md:justify-between md:flex-grow md:ml-8"
+      >
         <!-- Navigation Links -->
         <ul class="nav-links">
           <li v-for="link in navLinks" :key="link.path" class="nav-item">
@@ -41,20 +43,20 @@
 
       <!-- Mobile Navigation Menu -->
       <Transition
-          enter-active-class="transition duration-200 ease-out"
-          enter-from-class="transform -translate-y-4 opacity-0"
-          enter-to-class="transform translate-y-0 opacity-100"
-          leave-active-class="transition duration-150 ease-in"
-          leave-from-class="transform translate-y-0 opacity-100"
-          leave-to-class="transform -translate-y-4 opacity-0"
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="transform -translate-y-4 opacity-0"
+        enter-to-class="transform translate-y-0 opacity-100"
+        leave-active-class="transition duration-150 ease-in"
+        leave-from-class="transform translate-y-0 opacity-100"
+        leave-to-class="transform -translate-y-4 opacity-0"
       >
         <div v-if="isMobileMenuOpen" class="mobile-menu md:hidden">
           <ul class="flex flex-col space-y-4">
             <li v-for="link in navLinks" :key="link.path">
               <router-link
-                  :to="link.path"
-                  class="mobile-nav-link"
-                  @click="isMobileMenuOpen = false"
+                :to="link.path"
+                class="mobile-nav-link"
+                @click="isMobileMenuOpen = false"
               >
                 {{ link.label }}
               </router-link>
@@ -84,7 +86,7 @@ const isMobileMenuOpen = ref(false)
 const navLinks = [
   { path: '/', label: 'Recipes' },
   { path: '/myRecipes', label: 'My Recipes' },
-  { path: '/addRecipe', label: 'Add Recipe' }
+  { path: '/addRecipe', label: 'Add Recipe' },
 ]
 </script>
 

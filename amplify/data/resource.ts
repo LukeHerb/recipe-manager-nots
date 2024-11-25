@@ -27,7 +27,7 @@ const schema = a.schema({
       reviews: a.hasMany('Review', 'recipeId'), // Define relationship
     })
     .authorization((allow) => [
-      allow.publicApiKey().to(['read']), // Public API key can read.
+      allow.guest().to(['read']), // Guest users can read.
       allow.authenticated().to(['create', 'update', 'delete', 'read']), // Authenticated users can create, update, delete.
     ]),
   Review: a
@@ -41,7 +41,7 @@ const schema = a.schema({
       owner: a.string(),
     })
     .authorization((allow) => [
-      allow.publicApiKey().to(['read']), // Public API key can read.
+      allow.guest().to(['read']), // Guest users can read.
       allow.authenticated().to(['create', 'update', 'delete', 'read']), // Authenticated users can create, update, delete.
     ]),
 })
