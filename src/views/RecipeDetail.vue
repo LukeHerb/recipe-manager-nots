@@ -48,7 +48,7 @@
               v-if="isCreator || currentUser === null"
               class="flex items-center gap-3 relative"
             >
-              <div class="recipe-action-button">
+              <div class="recipe-action-button" v-if="currentUser !== null">
                 <PrintButton
                   :name="recipe.name"
                   :description="recipe.description"
@@ -62,10 +62,10 @@
                   :createdAt="recipe.createdAt"
                 />
               </div>
-              <div class="recipe-action-button">
+              <div class="recipe-action-button" v-if="currentUser !== null">
                 <ShareButton :recipeName="recipe.name" />
               </div>
-              <div class="recipe-action-button">
+              <div class="recipe-action-button" v-if="currentUser !== null">
                 <EditButton
                   :recipe-id="recipe.id"
                   :recipe-name="recipe.name"
