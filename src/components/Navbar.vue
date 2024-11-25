@@ -13,6 +13,7 @@
 
       <!-- Mobile Menu Button -->
       <button
+        v-if="authStore.isAuthenticated"
         class="mobile-menu-btn md:hidden"
         @click="isMobileMenuOpen = !isMobileMenuOpen"
         aria-label="Toggle menu"
@@ -25,6 +26,7 @@
 
       <!-- Desktop Navigation -->
       <div
+        v-if="authStore.isAuthenticated"
         class="hidden md:flex md:items-center md:justify-between md:flex-grow md:ml-8"
       >
         <!-- Navigation Links -->
@@ -38,7 +40,11 @@
         </ul>
 
         <!-- Sign In/Out Button for Desktop -->
-        <SignInOut :sign-out="signOut" class="sign-out-btn" />
+        <SignInOut :sign-out="authStore.signOut" class="sign-out-btn" />
+      </div>
+
+      <div v-else>
+        <Button @click="login" class="sign-out-btn"> Sign In </Button>
       </div>
 
       <!-- Mobile Navigation Menu -->
@@ -64,7 +70,10 @@
           </ul>
           <!-- Sign In/Out Button for Mobile -->
           <div class="mt-6">
-            <SignInOut :sign-out="signOut" class="sign-out-btn-mobile" />
+            <SignInOut
+              :sign-out="authStore.signOut"
+              class="sign-out-btn-mobile"
+            />
           </div>
         </div>
       </Transition>
@@ -73,12 +82,18 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
 import SignInOut from './button/SignInOut.vue'
+import Button from 'primevue/button'
 
-const { signOut } = defineProps<{
-  signOut: () => void
-}>()
+const router = useRouter()
+const authStore = useAuthStore()
+
+onMounted(() => {
+  authStore.checkAuth()
+})
 
 // State for mobile menu
 const isMobileMenuOpen = ref(false)
@@ -88,6 +103,10 @@ const navLinks = [
   { path: '/myRecipes', label: 'My Recipes' },
   { path: '/addRecipe', label: 'Add Recipe' },
 ]
+
+const login = () => {
+  router.push('/login')
+}
 </script>
 
 <style scoped>

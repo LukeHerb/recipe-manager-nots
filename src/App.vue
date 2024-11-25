@@ -1,56 +1,29 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { RouterView, useRouter } from 'vue-router'
-import { getCurrentUser, signOut as amplifySignOut } from 'aws-amplify/auth'
-import Navbar from './components/Navbar.vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from './stores/auth'
+import { Authenticator } from '@aws-amplify/ui-vue'
 import '@aws-amplify/ui-vue/styles.css'
+import Navbar from './components/Navbar.vue'
 
 const router = useRouter()
+const authStore = useAuthStore()
 
-// State to track if the user is authenticated
-const isAuthenticated = ref(false)
-
-// Function to check if the user is logged in
-const checkAuth = async () => {
-  try {
-    const user = await getCurrentUser()
-    isAuthenticated.value = !!user // Set true if user exists
-  } catch (error) {
-    isAuthenticated.value = false // User is not logged in
-    console.log('Not authenticated:', error)
-  }
-}
-
-// Function to handle sign-out
-const signOut = async () => {
-  try {
-    await amplifySignOut() // Sign out the user using AWS Amplify
-    isAuthenticated.value = false // Reset authentication state
-    router.push('/') // Redirect to home after sign-out
-  } catch (error) {
-    console.error('Error signing out:', error)
-  }
-}
-
-// Function to navigate to the login page
-const login = () => {
-  router.push('/login') // Navigate to login page
-}
-
-// Check authentication when the component is mounted
 onMounted(() => {
-  checkAuth()
+  authStore.checkAuth()
 })
+
+function handleAuthEvent(event) {
+  if (event === 'signIn') {
+    console.log('User signed in')
+    router.push('/')
+  }
+}
 </script>
 
 <template>
   <div>
-    <!-- Navbar receives signOut, login, and isAuthenticated props -->
-    <Navbar
-      :signOut="signOut"
-      :login="login"
-      :isAuthenticated="isAuthenticated"
-    />
+    <Navbar />
     <RouterView />
   </div>
 </template>

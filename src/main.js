@@ -1,22 +1,26 @@
-import './assets/main.css';
-import { createApp } from 'vue';
-import App from './App.vue';
-import { Amplify } from 'aws-amplify';
-import outputs from '../amplify_outputs.json';
-import PrimeVue from 'primevue/config';
-import Aura from '@primevue/themes/aura';
-import { definePreset } from '@primevue/themes';
-import '@fortawesome/fontawesome-free/css/all.css';
-import ToastService from 'primevue/toastservice';
-import Toast from 'primevue/toast';
-import router from './router';
-import 'primeicons/primeicons.css';
+import './assets/main.css'
+import { createApp } from 'vue'
+import App from './App.vue'
+import { Amplify } from 'aws-amplify'
+import outputs from '../amplify_outputs.json'
+import PrimeVue from 'primevue/config'
+import Aura from '@primevue/themes/aura'
+import { definePreset } from '@primevue/themes'
+import '@fortawesome/fontawesome-free/css/all.css'
+import ToastService from 'primevue/toastservice'
+import Toast from 'primevue/toast'
+import router from './router'
+import 'primeicons/primeicons.css'
+import { createPinia } from 'pinia'
 
-Amplify.configure(outputs);
+const pinia = createPinia()
+
+Amplify.configure(outputs)
 
 const app = createApp(App)
 
 app.use(router)
+app.use(pinia)
 
 const MyPreset = definePreset(Aura, {
   semantic: {

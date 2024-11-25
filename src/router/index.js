@@ -44,24 +44,24 @@ const router = createRouter({
   routes,
 })
 
-// Navigation guard
-router.beforeEach(async (to, from, next) => {
-  if (to.matched.some((record) => record.meta.requiresAuth)) {
-    try {
-      // Use getCurrentUser to check authentication
-      const user = await getCurrentUser()
-      if (user) {
-        next() // Allow navigation
-      } else {
-        throw new Error('User not authenticated')
-      }
-    } catch (error) {
-      console.log('User is not authenticated:', error)
-      next({ path: '/login', query: { redirect: to.fullPath } }) // Redirect to login
-    }
-  } else {
-    next() // Route does not require authentication
-  }
-})
+// // Navigation guard
+// router.beforeEach(async (to, from, next) => {
+//   if (to.matched.some((record) => record.meta.requiresAuth)) {
+//     try {
+//       // Use getCurrentUser to check authentication
+//       const user = await getCurrentUser()
+//       if (user) {
+//         next() // Allow navigation
+//       } else {
+//         throw new Error('User not authenticated')
+//       }
+//     } catch (error) {
+//       console.log('User is not authenticated:', error)
+//       next({ name: 'Login' }) // Redirect to login page
+//     }
+//   } else {
+//     next() // Route does not require authentication
+//   }
+// })
 
 export default router
