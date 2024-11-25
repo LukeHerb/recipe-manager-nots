@@ -3,67 +3,18 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { signIn } from 'aws-amplify/auth'
 import { useAuthStore } from '../stores/auth' // Import the Pinia store
-
+import '@aws-amplify/ui-vue/styles.css'
+import { Authenticator, useAuthenticator } from '@aws-amplify/ui-vue'
+import Recipes from './Recipes.vue'
+const auth = useAuthenticator()
 const router = useRouter()
 const authStore = useAuthStore() // Initialize the store
-
-// Reactive variables for user input and error messages
-const username = ref('')
-const password = ref('')
-const errorMessage = ref('')
-
-// Function to handle sign-in
-const handleSignIn = async () => {
-  try {
-    // Attempt to sign in the user
-    const user = await signIn({
-      username: username.value,
-      password: password.value,
-    })
-    console.log('User signed in:', user)
-
-    // Clear any previous error messages
-    errorMessage.value = ''
-
-    // Update the Pinia store
-    authStore.isAuthenticated = true
-    authStore.user = user
-
-    // Redirect to home or intended route
-    router.push('/')
-  } catch (error) {
-    console.error('Error signing in:', error)
-    errorMessage.value = 'Invalid username or password'
-  }
-}
 </script>
 
 <template>
-  <div class="login-container">
-    <h1>Sign In</h1>
-    <form @submit.prevent="handleSignIn">
-      <div class="form-group">
-        <label for="username">Username</label>
-        <input
-          id="username"
-          v-model="username"
-          type="text"
-          placeholder="Enter your username"
-        />
-      </div>
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input
-          id="password"
-          v-model="password"
-          type="password"
-          placeholder="Enter your password"
-        />
-      </div>
-      <button type="submit">Sign In</button>
-      <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
-    </form>
-  </div>
+  <authenticator>
+    {{ router.push('/') }}
+  </authenticator>
 </template>
 
 <style>

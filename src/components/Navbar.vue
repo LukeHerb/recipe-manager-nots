@@ -13,7 +13,7 @@
 
       <!-- Mobile Menu Button -->
       <button
-        v-if="authStore.isAuthenticated"
+        v-if="auth.authStatus === 'authenticated'"
         class="mobile-menu-btn md:hidden"
         @click="isMobileMenuOpen = !isMobileMenuOpen"
         aria-label="Toggle menu"
@@ -26,7 +26,7 @@
 
       <!-- Desktop Navigation -->
       <div
-        v-if="authStore.isAuthenticated"
+        v-if="auth.authStatus === 'authenticated'"
         class="hidden md:flex md:items-center md:justify-between md:flex-grow md:ml-8"
       >
         <!-- Navigation Links -->
@@ -87,6 +87,9 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import SignInOut from './button/SignInOut.vue'
 import Button from 'primevue/button'
+
+import { Authenticator, useAuthenticator } from '@aws-amplify/ui-vue'
+const auth = useAuthenticator()
 
 const router = useRouter()
 const authStore = useAuthStore()
