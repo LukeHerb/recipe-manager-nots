@@ -8,7 +8,6 @@ import { Authenticator, useAuthenticator } from '@aws-amplify/ui-vue'
 import Recipes from './Recipes.vue'
 const auth = useAuthenticator()
 const router = useRouter()
-const authStore = useAuthStore() // Initialize the store
 </script>
 
 <template>

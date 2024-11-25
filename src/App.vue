@@ -5,20 +5,6 @@ import { useAuthStore } from './stores/auth'
 import { Authenticator } from '@aws-amplify/ui-vue'
 import '@aws-amplify/ui-vue/styles.css'
 import Navbar from './components/Navbar.vue'
-
-const router = useRouter()
-const authStore = useAuthStore()
-
-onMounted(() => {
-  authStore.checkAuth()
-})
-
-function handleAuthEvent(event) {
-  if (event === 'signIn') {
-    console.log('User signed in')
-    router.push('/')
-  }
-}
 </script>
 
 <template>
