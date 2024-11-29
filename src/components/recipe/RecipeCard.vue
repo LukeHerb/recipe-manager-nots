@@ -175,7 +175,6 @@ function goToRecipe(id: string): void {
               class="fa-solid fa-star text-gray-300"
             ></i>
           </div>
-          {{ console.log(recipe) }}
           <!-- Display number of reviews in parentheses -->
           <span class="text-sm" v-if="recipe.numReviews">{{
             recipe.numReviews > 1

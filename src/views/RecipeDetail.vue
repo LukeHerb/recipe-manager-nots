@@ -326,7 +326,6 @@ async function fetchRecipe() {
       }
     )
     if (response.data) {
-      console.log('Recipe data:', response.data)
       // Create a new Recipe object with the response data
       const recipeData: Recipe = {
         id: response.data.id,

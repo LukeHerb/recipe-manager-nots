@@ -34,8 +34,7 @@ async function handleSave() {
     }
     await client.models.Recipe.update(recipe)
     isSaved.value = !isSaved.value
-    console.log('recipe unsaved')
-    console.log(recipe)
+
     return
   }
 
