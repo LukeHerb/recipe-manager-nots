@@ -48,7 +48,10 @@
               v-if="isCreator || currentUser === null"
               class="flex items-center gap-3 relative"
             >
-              <div class="recipe-action-button" v-if="currentUser !== null">
+              <div
+                class="recipe-action-button"
+                v-if="auth.authStatus === 'authenticated'"
+              >
                 <PrintButton
                   :name="recipe.name"
                   :description="recipe.description"
@@ -62,10 +65,16 @@
                   :createdAt="recipe.createdAt"
                 />
               </div>
-              <div class="recipe-action-button" v-if="currentUser !== null">
+              <div
+                class="recipe-action-button"
+                v-if="auth.authStatus === 'authenticated'"
+              >
                 <ShareButton :recipeName="recipe.name" />
               </div>
-              <div class="recipe-action-button" v-if="currentUser !== null">
+              <div
+                class="recipe-action-button"
+                v-if="auth.authStatus === 'authenticated'"
+              >
                 <EditButton
                   :recipe-id="recipe.id"
                   :recipe-name="recipe.name"
@@ -77,14 +86,20 @@
 
             <!-- Other Users' Actions -->
             <div v-else class="flex items-center gap-3">
-              <div class="recipe-action-button">
+              <div
+                class="recipe-action-button"
+                v-if="auth.authStatus === 'authenticated'"
+              >
                 <SaveButton
                   :recipeId="recipe.id"
                   :userId="currentUser?.username"
                   :savedBy="recipe.savedBy"
                 />
               </div>
-              <div class="recipe-action-button">
+              <div
+                class="recipe-action-button"
+                v-if="auth.authStatus === 'authenticated'"
+              >
                 <PrintButton
                   :name="recipe.name"
                   :description="recipe.description"
@@ -98,7 +113,10 @@
                   :createdAt="recipe.createdAt"
                 />
               </div>
-              <div class="recipe-action-button">
+              <div
+                class="recipe-action-button"
+                v-if="auth.authStatus === 'authenticated'"
+              >
                 <ShareButton :recipeName="recipe.name" />
               </div>
             </div>
@@ -169,7 +187,14 @@
       </div>
 
       <!-- Reviews Section -->
-      <div v-if="!isCreator && currentUser !== null" class="mt-8">
+      <div
+        v-if="
+          !isCreator &&
+          currentUser !== null &&
+          auth.authStatus === 'authenticated'
+        "
+        class="mt-8"
+      >
         <RecipeReview
           :recipe="{ data: recipe, reviews: recipe.reviews || [] }"
           :current-user="currentUser"
@@ -194,6 +219,8 @@ import EditButton from '../components/button/EditButton.vue'
 import SaveButton from '../components/button/SaveButton.vue'
 import ShareButton from '../components/button/ShareButton.vue'
 import PrintButton from '../components/button/PrintButton.vue'
+import { Authenticator, useAuthenticator } from '@aws-amplify/ui-vue'
+const auth = useAuthenticator()
 
 // Type definitions
 interface Review {

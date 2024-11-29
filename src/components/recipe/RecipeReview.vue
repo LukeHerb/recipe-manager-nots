@@ -261,19 +261,28 @@ async function addReview(): Promise<void> {
       })
     }
 
-    const totalReviews = props.recipe.reviews?.length
-    const totalRating = props.recipe.reviews?.reduce(
-      (acc: number, review: ReviewData) => acc + review.reviewStars,
-      0
-    )
+    const totalReviews = props.recipe.reviews?.length || 0
+    const totalRating =
+      props.recipe.reviews?.reduce(
+        (acc: number, review: ReviewData) => acc + review.reviewStars,
+        0
+      ) || 0
 
-    const newAverageRating = totalRating / totalReviews
+    // Calculate and round average rating to the nearest integer
+    const newAverageRating =
+      totalReviews > 0 ? Math.round(totalRating / totalReviews) : 0
 
-    await client.models.Recipe.update({
+    console.log('Total Reviews:', totalReviews)
+    console.log('Total Rating:', totalRating)
+    console.log('New Average Rating (Integer):', newAverageRating)
+
+    // Update recipe with integer average rating
+    const updatedRecipeData = await client.models.Recipe.update({
       id: props.recipe.data.id,
-      averageRating: newAverageRating,
+      averageRating: newAverageRating, // Use integer value
       numReviews: totalReviews,
     })
+    console.log('Updated Recipe Data:', updatedRecipeData)
   } catch (error) {
     console.error('Error creating review:', error)
     toast.add({
