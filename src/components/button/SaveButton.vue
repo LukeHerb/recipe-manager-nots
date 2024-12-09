@@ -15,6 +15,9 @@ import { ref, onMounted } from 'vue'
 import Button from 'primevue/button'
 import { generateClient } from 'aws-amplify/data'
 import { type Schema } from '../../../amplify/data/resource'
+import { useToast } from 'primevue/usetoast'
+
+const toast = useToast()
 const client = generateClient<Schema>()
 
 const props = defineProps<{
@@ -35,6 +38,13 @@ async function handleSave() {
     await client.models.Recipe.update(recipe)
     isSaved.value = !isSaved.value
 
+    toast.add({
+      severity: 'info',
+      summary: 'Recipe Unsaved',
+      detail: 'The recipe has been removed from your saved recipes.',
+      life: 3000,
+    })
+
     return
   }
 
@@ -46,8 +56,12 @@ async function handleSave() {
   await client.models.Recipe.update(recipe)
   isSaved.value = !isSaved.value
 
-  console.log('recipe saved')
-  console.log(recipe)
+  toast.add({
+    severity: 'success',
+    summary: 'Recipe Saved',
+    detail: 'The recipe has been saved to your recipes.',
+    life: 3000,
+  })
 }
 
 onMounted(async () => {
