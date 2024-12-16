@@ -73,14 +73,14 @@ function goToRecipe(id: string): void {
   <!-- Recipe Card Container -->
   <li
     @click="goToRecipe(recipe.id)"
-    class="group relative flex flex-col h-[600px] w-full p-6 border-2 border-gold rounded-2xl cursor-pointer hover:shadow-lg transition-all duration-300 ease-in-out hover:-translate-y-1 overflow-hidden"
+    class="group relative flex flex-col h-[800px] w-full p-6 border-2 border-gold rounded-2xl cursor-pointer hover:shadow-lg transition-all duration-300 ease-in-out hover:-translate-y-1 overflow-hidden"
   >
     <!--
     ==========================================
     Recipe Image Section
     ==========================================
     -->
-    <div class="w-full h-[300px] rounded-xl overflow-hidden mb-6">
+    <div class="w-full h-[600px] rounded-xl overflow-hidden mb-6">
       <!-- Loading State -->
       <div
         v-if="!recipe.hasLoadedImages"
@@ -92,7 +92,7 @@ function goToRecipe(id: string): void {
         <img
           :src="recipe.imageLinks[0]"
           :alt="recipe.name"
-          class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          class="w-full h-full object-center object-cover transition-transform duration-300 hover:scale-105"
           loading="lazy"
         />
       </div>
